@@ -332,7 +332,7 @@ export async function analyzeTranscription(
       throw new Error('No se encontró la clave de API de Groq');
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://focusmeet-ai.vercel.app';
     const apiUrl = `${baseUrl}/api/chat`;
 
     const response = await fetch(apiUrl, {
