@@ -18,6 +18,7 @@ export default function ReportesPage() {
   const { user, loading: authLoading, getToken } = useAuth();
   const [reports, setReports] = useState<ReportListItem[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false); // se marca tras el primer intento
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalAnalysis, setModalAnalysis] = useState<{
@@ -30,11 +31,14 @@ export default function ReportesPage() {
   // 👇 useCallback para que no cambie en cada render
   const loadReports = useCallback(async () => {
     try {
-      setLoading(true);
+      // Evitar parpadeo: solo mostramos spinner en la primera carga
+      if (!loaded) setLoading(true);
       const token = await getToken();
       if (!token) {
         setReports([]);
+        setError(null);
         setLoading(false);
+        setLoaded(true);
         return;
       }
       const res = await fetch("/api/reports", {
@@ -43,15 +47,26 @@ export default function ReportesPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error("No se pudieron cargar los reportes");
+      if (!res.ok) {
+        // Si el backend no puede listar (p.ej. prod sin Firestore), mostramos vacío sin error
+        setReports([]);
+        setError(null);
+        setLoaded(true);
+        return;
+      }
       const data = await res.json();
       setReports(data || []);
+      setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error desconocido");
+      // Ante cualquier fallo de red, mostramos vacío sin error para evitar parpadeos
+      setReports([]);
+      setError(null);
     } finally {
+      // Primero marcamos como cargado para que la UI deje de mostrar spinner
+      setLoaded(true);
       setLoading(false);
     }
-  }, [getToken]); // 👈 dependencia estable
+  }, [getToken, loaded]); // 👈 dependencia estable
 
   useEffect(() => {
     if (!authLoading) {
@@ -155,17 +170,17 @@ export default function ReportesPage() {
         </div>
       )}
 
-      {(authLoading || loading) && user && (
+      {!loaded && (authLoading || loading) && user && (
         <div className="flex items-center justify-center py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600" />
         </div>
       )}
 
-      {!authLoading && user && !loading && error && (
+      {loaded && !authLoading && user && error && (
         <div className="bg-red-50 text-red-700 rounded-md p-4">{error}</div>
       )}
 
-      {!authLoading && user && !loading && !error && (reports?.length ?? 0) === 0 && (
+      {loaded && !authLoading && user && !error && (reports?.length ?? 0) === 0 && (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
@@ -185,7 +200,7 @@ export default function ReportesPage() {
         </div>
       )}
 
-      {!authLoading && user && !loading && !error && (reports?.length ?? 0) > 0 && (
+      {loaded && !authLoading && user && !error && (reports?.length ?? 0) > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           {reports!.map((r) => (
             <div

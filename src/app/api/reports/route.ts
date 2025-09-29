@@ -93,8 +93,11 @@ export async function POST(request: Request) {
       console.warn('No se pudo guardar en Firestore, se mantiene sólo FS:', e);
     }
 
-    // Guardar siempre en filesystem como fallback local
-    await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
+    // Guardar siempre en filesystem como fallback local (solo en desarrollo)
+    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    if (!isProd) {
+      await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
+    }
 
     return NextResponse.json({ ok: true, filename, id: firestoreId, title });
   } catch (error) {
@@ -124,8 +127,7 @@ export async function GET(request: Request) {
         const snap = await db
           .collection('reports')
           .where('userId', '==', uid)
-          .orderBy('createdAt', 'desc')
-          .limit(50)
+          .limit(100)
           .get();
         type ReportDoc = {
           createdAt?: string;
@@ -146,14 +148,19 @@ export async function GET(request: Request) {
             tasksCount: data.analysis?.tasks?.length || 0,
             meta: data.meta || {},
           };
-        });
+        }).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
         return NextResponse.json(items);
       } catch (e) {
         console.warn('Fallo al listar Firestore, fallback a FS:', e);
       }
     }
 
-    // Fallback: listar desde filesystem local por usuario
+    // Fallback: listar desde filesystem local por usuario (solo en desarrollo)
+    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    if (isProd) {
+      // En producción, si no hay Firestore, devolvemos lista vacía segura
+      return NextResponse.json([]);
+    }
     const reportsDir = path.join(process.cwd(), 'reports', uid);
     await fs.mkdir(reportsDir, { recursive: true });
     const files = await fs.readdir(reportsDir).catch(() => [] as string[]);
