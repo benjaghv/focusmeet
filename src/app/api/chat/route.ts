@@ -1,7 +1,6 @@
 // En src/app/api/chat/route.ts
 import { NextResponse } from 'next/server';
 import { Groq } from 'groq-sdk';
-import { GroqModel, GROQ_MODELS } from '@/lib/groq';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,

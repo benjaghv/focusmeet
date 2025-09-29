@@ -5,7 +5,6 @@ import { FaCloudUploadAlt } from 'react-icons/fa';
 import Navbar from './components/Navbar';
 import AnalysisModal from './components/AnalysisModal';
 import { toast } from 'sonner';
-import { transcribeAudio } from '@/lib/audioAnalysis';
 import { ProgressBar } from './components/ProgressBar';
 
 // Mover esta interfaz a groq.ts si se usa en otros lugares
@@ -25,7 +24,6 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [progress, setProgress] = useState(0);
   const [progressStatus, setProgressStatus] = useState('Preparando...');
-  const [showProgress, setShowProgress] = useState(false);
   const [savingReport, setSavingReport] = useState(false);
 
   const updateProgress = (value: number, status: string) => {
@@ -47,7 +45,6 @@ export default function Home() {
     }
 
     setIsAnalyzing(true);
-    setShowProgress(true);
     updateProgress(10, 'Subiendo archivo...');
 
     try {
@@ -105,7 +102,6 @@ export default function Home() {
       setIsAnalyzing(false);
       // Ocultar la barra después de un retraso
       setTimeout(() => {
-        setShowProgress(false);
         setProgress(0);
       }, 1000);
     }

@@ -1,7 +1,7 @@
 // src/components/ProgressBar.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+// No React hooks needed here
 
 interface ProgressBarProps {
   progress: number;

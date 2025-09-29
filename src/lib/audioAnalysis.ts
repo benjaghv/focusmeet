@@ -1,5 +1,4 @@
 // src/lib/audioAnalysis.ts
-import { AssemblyAI } from 'assemblyai';
 import axios from 'axios';
 import { GroqModel } from './groq';
 
@@ -58,6 +57,24 @@ interface TranscriptResponse {
   error?: string;
 }
 
+// Whisper/OpenAI segment type (subset used)
+interface WhisperSegment {
+  text: string;
+  start: number;
+  end: number;
+  confidence?: number;
+}
+
+// Deepgram word type (subset used)
+interface DeepgramWord {
+  speaker?: number;
+  punctuated_word?: string;
+  word: string;
+  start: number;
+  end: number;
+  confidence?: number;
+}
+
 export async function transcribeAudio(
   audioBuffer: ArrayBuffer,
   mimeType: string,
@@ -75,7 +92,7 @@ export async function transcribeAudio(
       throw new Error('El buffer de audio está vacío');
     }
 
-    const processedAudio = await preprocessAudio(audioBuffer, mimeType);
+    const processedAudio = await preprocessAudio(audioBuffer);
     console.log(`Audio preprocesado. Tamaño: ${processedAudio.byteLength} bytes`);
 
     switch (provider) {
@@ -95,8 +112,7 @@ export async function transcribeAudio(
 }
 
 async function preprocessAudio(
-  buffer: ArrayBuffer,
-  mimeType: string
+  buffer: ArrayBuffer
 ): Promise<ArrayBuffer> {
   // Implementar preprocesamiento de audio si es necesario
   return buffer;
@@ -158,48 +174,48 @@ async function transcribeWithAssemblyAI(audioBuffer: ArrayBuffer): Promise<Trans
     }
 
     // 3. Esperar a que esté lista
-let transcriptData: TranscriptResponse | null = null;
-let attempts = 0;
-const maxAttempts = 30;
+    let transcriptData: TranscriptResponse | null = null;
+    let attempts = 0;
+    const maxAttempts = 30;
 
-while (attempts < maxAttempts) {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const statusResponse = await axios.get<TranscriptResponse>(
-    `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
-    {
-      headers: {
-        'Authorization': API_KEY,
-        'Content-Type': 'application/json'
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const statusResponse = await axios.get<TranscriptResponse>(
+        `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
+        {
+          headers: {
+            'Authorization': API_KEY,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      transcriptData = statusResponse.data;
+      console.log(`Estado (${attempts + 1}/${maxAttempts}):`, transcriptData.status);
+
+      if (transcriptData.status === 'completed') {
+        break;
+      } else if (transcriptData.status === 'error') {
+        throw new Error(`Error en la transcripción: ${transcriptData.error || 'Error desconocido'}`);
       }
+
+      attempts++;
     }
-  );
 
-  transcriptData = statusResponse.data;
-  console.log(`Estado (${attempts + 1}/${maxAttempts}):`, transcriptData.status);
+    // Verificar si se obtuvo una respuesta
+    if (!transcriptData) {
+      throw new Error('No se pudo obtener la respuesta de la transcripción');
+    }
 
-  if (transcriptData.status === 'completed') {
-    break;
-  } else if (transcriptData.status === 'error') {
-    throw new Error(`Error en la transcripción: ${transcriptData.error || 'Error desconocido'}`);
-  }
+    // Verificar el estado final
+    if (transcriptData.status !== 'completed') {
+      throw new Error(`La transcripción no se completó. Estado final: ${transcriptData.status}`);
+    }
 
-  attempts++;
-}
-
-// Verificar si se obtuvo una respuesta
-if (!transcriptData) {
-  throw new Error('No se pudo obtener la respuesta de la transcripción');
-}
-
-// Verificar el estado final
-if (transcriptData.status !== 'completed') {
-  throw new Error(`La transcripción no se completó. Estado final: ${transcriptData.status}`);
-}
-
-// 4. Procesar la respuesta
-const utterances = transcriptData.utterances || [];
-const speakerIds = new Set(utterances.map(u => u.speaker));
+    // 4. Procesar la respuesta
+    const utterances = transcriptData.utterances || [];
+    const speakerIds = new Set(utterances.map(u => u.speaker));
     
     return {
       text: transcriptData.text || '',
@@ -246,7 +262,7 @@ async function transcribeWithWhisper(audioBuffer: ArrayBuffer): Promise<Transcri
     return {
       text: data.text || '',
       speakers: [{ id: 'speaker_0' }],
-      segments: (data.segments || []).map((s: any) => ({
+      segments: (data.segments || []).map((s: WhisperSegment) => ({
         text: s.text,
         start: s.start,
         end: s.end,
@@ -279,9 +295,10 @@ async function transcribeWithDeepgram(audioBuffer: ArrayBuffer): Promise<Transcr
 
     const data = response.data;
     const speakers = new Set<string>();
-    const segments: any[] = [];
+    type Segment = TranscriptionResult['segments'][number];
+    const segments: Segment[] = [];
 
-    (data.results?.channels?.[0]?.alternatives?.[0]?.words || []).forEach((word: any) => {
+    (data.results?.channels?.[0]?.alternatives?.[0]?.words || []).forEach((word: DeepgramWord) => {
       const speaker = `speaker_${word.speaker || 0}`;
       speakers.add(speaker);
       
