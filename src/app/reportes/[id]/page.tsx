@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { toast } from "sonner";
-import { useCallback } from "react";
 type Task = { description: string; responsible: string };
 
 type Analysis = {
@@ -20,6 +19,9 @@ export default function ReportEditorPage() {
   const id = useMemo(() => (params?.id as string) || "", [params]);
   const { getToken, loading: authLoading } = useAuth();
   const router = useRouter();
+  
+  const loadedRef = useRef(false);
+  const currentIdRef = useRef<string>("");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,38 +57,51 @@ export default function ReportEditorPage() {
       .map((t) => `${t.description || ""} | ${t.responsible || ""}`.trim())
       .join("\n");
 
-  // Cargar el reporte (definido antes de usar en useEffect)
-  const loadReport = useCallback(async () => {
-    try {
-      setLoading(true);
-      const token = await getToken();
-      if (!token) {
-        setError("Debes iniciar sesión para editar reportes");
-        setLoading(false);
+  // Cargar el reporte una sola vez
+  useEffect(() => {
+    async function loadReport() {
+      // Evitar cargas múltiples del mismo reporte
+      if (authLoading || !id || (loadedRef.current && currentIdRef.current === id)) {
         return;
       }
-      const res = await fetch(`/api/reports/${encodeURIComponent(id)}`, {
-        cache: "no-store",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("No se pudo cargar el reporte");
-      const data = await res.json();
-      const a: Analysis = (data && data.analysis) || {};
-      setShortSummary(a.shortSummary || "");
-      setDetailedSummary(a.detailedSummary || "");
-      setKeyPointsText((a.keyPoints || []).join("\n"));
-      setDecisionsText((a.decisions || []).join("\n"));
-      setTasksText(formatTasks(a.tasks));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error desconocido");
-    } finally {
-      setLoading(false);
+      
+      // Si cambió el ID, resetear el estado
+      if (currentIdRef.current !== id) {
+        loadedRef.current = false;
+        currentIdRef.current = id;
+        setError(null);
+      }
+      
+      try {
+        setLoading(true);
+        const token = await getToken();
+        if (!token) {
+          setError("Debes iniciar sesión para editar reportes");
+          setLoading(false);
+          return;
+        }
+        const res = await fetch(`/api/reports/${encodeURIComponent(id)}`, {
+          cache: "no-store",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("No se pudo cargar el reporte");
+        const data = await res.json();
+        const a: Analysis = (data && data.analysis) || {};
+        setShortSummary(a.shortSummary || "");
+        setDetailedSummary(a.detailedSummary || "");
+        setKeyPointsText((a.keyPoints || []).join("\n"));
+        setDecisionsText((a.decisions || []).join("\n"));
+        setTasksText(formatTasks(a.tasks));
+        loadedRef.current = true;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Error desconocido");
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [getToken, id]);
-
-  useEffect(() => {
-    if (!authLoading && id) loadReport();
-  }, [authLoading, id, loadReport]);
+    
+    loadReport();
+  }, [authLoading, id, getToken]);
 
   async function handleSave() {
     try {
