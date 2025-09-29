@@ -1,0 +1,38 @@
+{
+  "createdAt": "2025-09-29T00:22:57.768Z",
+  "analysis": {
+    "shortSummary": "Reunión para discutir el lanzamiento de la nueva funcionalidad del panel de control y asignación de tareas",
+    "detailedSummary": "En la reunión se decidió lanzar la nueva funcionalidad del panel de control el próximo lunes. Se asignaron tareas al equipo de diseño para entregar los últimos ajustes antes del viernes. También se abordaron reportes de errores en la app móvil y se asignó a Juan la tarea de revisar los logs. Carla se encargará de preparar el documento de lanzamiento y se acordó realizar una reunión de seguimiento el jueves para verificar el estado de los pendientes.",
+    "keyPoints": [
+      "Lanzamiento de la nueva funcionalidad del panel de control el próximo lunes",
+      "Entrega de ajustes de diseño antes del viernes",
+      "Revisión de reportes de errores en la app móvil",
+      "Preparación del documento de lanzamiento",
+      "Reunión de seguimiento el jueves"
+    ],
+    "decisions": [
+      "Lanzar la nueva funcionalidad del panel de control el próximo lunes",
+      "Realizar una reunión de seguimiento el jueves"
+    ],
+    "tasks": [
+      {
+        "descripcion": "Entregar los últimos ajustes de diseño",
+        "responsable": "Equipo de diseño"
+      },
+      {
+        "descripcion": "Revisar los logs de la app móvil",
+        "responsable": "Juan"
+      },
+      {
+        "descripcion": "Preparar el documento de lanzamiento",
+        "responsable": "Carla"
+      }
+    ],
+    "sentiment": "positivo"
+  },
+  "meta": {
+    "source": "FocusMeet",
+    "savedAt": "2025-09-29T00:22:56.333Z"
+  },
+  "version": 1
+}
