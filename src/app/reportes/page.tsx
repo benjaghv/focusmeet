@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import AnalysisModal from "../components/AnalysisModal";
 import { useAuth } from "@/lib/useAuth";
 
@@ -27,7 +27,8 @@ export default function ReportesPage() {
     tasks: { description: string; responsible: string }[];
   } | null>(null);
 
-  const loadReports = async () => {
+  // 👇 useCallback para que no cambie en cada render
+  const loadReports = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -50,13 +51,13 @@ export default function ReportesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]); // 👈 dependencia estable
 
   useEffect(() => {
     if (!authLoading) {
       loadReports();
     }
-  }, [authLoading]);
+  }, [authLoading, loadReports]); // 👈 ya no da warning
 
   const formatDate = (iso?: string | null) => {
     if (!iso) return "Fecha desconocida";
@@ -104,7 +105,7 @@ export default function ReportesPage() {
         return;
       }
       const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("No se pudo eliminar el reporte");
@@ -115,7 +116,7 @@ export default function ReportesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 overflow-x-hidden">{/* pt-28 empuja debajo del Navbar fijo y evita overflow */}
+    <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 overflow-x-hidden">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Reportes guardados</h1>
         <div className="flex items-center gap-3">
@@ -128,14 +129,28 @@ export default function ReportesPage() {
         </div>
       </div>
 
-      {/* Si no hay sesión: CTA para iniciar sesión/registrarse */}
+      {/* Si no hay sesión */}
       {!authLoading && !user && (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Inicia sesión para ver tus reportes</h3>
-          <p className="mt-1 text-gray-500">Debes estar autenticado para listar y abrir reportes guardados.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Inicia sesión para ver tus reportes
+          </h3>
+          <p className="mt-1 text-gray-500">
+            Debes estar autenticado para listar y abrir reportes guardados.
+          </p>
           <div className="mt-4 flex items-center justify-center gap-3">
-            <a href="/login" className="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 text-sm font-medium">Iniciar sesión</a>
-            <a href="/register" className="px-4 py-2 rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium">Crear cuenta</a>
+            <a
+              href="/login"
+              className="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 text-sm font-medium"
+            >
+              Iniciar sesión
+            </a>
+            <a
+              href="/register"
+              className="px-4 py-2 rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium"
+            >
+              Crear cuenta
+            </a>
           </div>
         </div>
       )}
@@ -152,8 +167,18 @@ export default function ReportesPage() {
 
       {!authLoading && user && !loading && !error && (reports?.length ?? 0) === 0 && (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1}
+              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           <h3 className="mt-2 text-lg font-medium text-gray-900">No hay reportes</h3>
           <p className="mt-1 text-gray-500">Aún no has generado ningún reporte.</p>
@@ -163,10 +188,16 @@ export default function ReportesPage() {
       {!authLoading && user && !loading && !error && (reports?.length ?? 0) > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           {reports!.map((r) => (
-            <div key={r.filename} className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 overflow-hidden">
+            <div
+              key={r.filename}
+              className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 overflow-hidden"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate break-words" title={r.title || r.filename}>
+                  <h3
+                    className="text-lg font-semibold text-gray-900 truncate break-words"
+                    title={r.title || r.filename}
+                  >
                     {r.title || r.filename}
                   </h3>
                   <p className="text-sm text-gray-500">{formatDate(r.createdAt)}</p>
@@ -182,7 +213,8 @@ export default function ReportesPage() {
 
               {r.decisions && r.decisions.length > 0 && (
                 <div className="text-xs text-gray-600 break-words">
-                  <span className="font-medium">Decisiones:</span> {r.decisions.slice(0, 3).join(" • ")}
+                  <span className="font-medium">Decisiones:</span>{" "}
+                  {r.decisions.slice(0, 3).join(" • ")}
                   {r.decisions.length > 3 ? " …" : ""}
                 </div>
               )}

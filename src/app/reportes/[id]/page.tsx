@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { toast } from "sonner";
-
+import { useCallback } from "react";
 type Task = { description: string; responsible: string };
 
 type Analysis = {
@@ -18,7 +18,7 @@ type Analysis = {
 export default function ReportEditorPage() {
   const params = useParams();
   const id = useMemo(() => (params?.id as string) || "", [params]);
-  const { getToken, user, loading: authLoading } = useAuth();
+  const { getToken, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -55,7 +55,8 @@ export default function ReportEditorPage() {
       .map((t) => `${t.description || ""} | ${t.responsible || ""}`.trim())
       .join("\n");
 
-  async function loadReport() {
+  // Cargar el reporte (definido antes de usar en useEffect)
+  const loadReport = useCallback(async () => {
     try {
       setLoading(true);
       const token = await getToken();
@@ -65,8 +66,8 @@ export default function ReportEditorPage() {
         return;
       }
       const res = await fetch(`/api/reports/${encodeURIComponent(id)}`, {
-        headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("No se pudo cargar el reporte");
       const data = await res.json();
@@ -81,11 +82,11 @@ export default function ReportEditorPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getToken, id]);
 
   useEffect(() => {
     if (!authLoading && id) loadReport();
-  }, [authLoading, id]);
+  }, [authLoading, id, loadReport]);
 
   async function handleSave() {
     try {

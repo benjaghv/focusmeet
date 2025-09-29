@@ -10,7 +10,7 @@ const config = {
 
 export function getFirebaseClientApp() {
   if (!getApps().length) {
-    return initializeApp(config as any);
+    return initializeApp(config);
   }
   return getApp();
 }
