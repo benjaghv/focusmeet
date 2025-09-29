@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AnalysisModal from "../components/AnalysisModal";
+import { useAuth } from "@/lib/useAuth";
 
 type ReportListItem = {
   filename: string;
@@ -13,6 +14,7 @@ type ReportListItem = {
 };
 
 export default function ReportesPage() {
+  const { user, loading: authLoading, getToken } = useAuth();
   const [reports, setReports] = useState<ReportListItem[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,18 @@ export default function ReportesPage() {
   const loadReports = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/reports", { cache: "no-store" });
+      const token = await getToken();
+      if (!token) {
+        setReports([]);
+        setLoading(false);
+        return;
+      }
+      const res = await fetch("/api/reports", {
+        cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!res.ok) throw new Error("No se pudieron cargar los reportes");
       const data = await res.json();
       setReports(data || []);
@@ -39,8 +52,10 @@ export default function ReportesPage() {
   };
 
   useEffect(() => {
-    loadReports();
-  }, []);
+    if (!authLoading) {
+      loadReports();
+    }
+  }, [authLoading]);
 
   const formatDate = (iso?: string | null) => {
     if (!iso) return "Fecha desconocida";
@@ -54,7 +69,15 @@ export default function ReportesPage() {
 
   const handleViewReport = async (filename: string) => {
     try {
-      const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, { cache: "no-store" });
+      const token = await getToken();
+      if (!token) {
+        setError("Debes iniciar sesión para abrir el reporte");
+        return;
+      }
+      const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
+        cache: "no-store",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("No se pudo abrir el reporte");
       const data = await res.json();
       const analysis = data.analysis || {};
@@ -67,6 +90,26 @@ export default function ReportesPage() {
       setIsModalOpen(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error desconocido al abrir el reporte");
+    }
+  };
+
+  const handleDeleteReport = async (filename: string) => {
+    try {
+      const ok = confirm("¿Eliminar este reporte? Esta acción no se puede deshacer.");
+      if (!ok) return;
+      const token = await getToken();
+      if (!token) {
+        setError("Debes iniciar sesión para eliminar reportes");
+        return;
+      }
+      const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("No se pudo eliminar el reporte");
+      await loadReports();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error desconocido al eliminar");
     }
   };
 
@@ -84,15 +127,29 @@ export default function ReportesPage() {
         </div>
       </div>
 
-      {loading && (
-        <div className="bg-white rounded-lg shadow p-8 text-center">Cargando…</div>
+      {/* Si no hay sesión: CTA para iniciar sesión/registrarse */}
+      {!authLoading && !user && (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Inicia sesión para ver tus reportes</h3>
+          <p className="mt-1 text-gray-500">Debes estar autenticado para listar y abrir reportes guardados.</p>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <a href="/login" className="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 text-sm font-medium">Iniciar sesión</a>
+            <a href="/register" className="px-4 py-2 rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium">Crear cuenta</a>
+          </div>
+        </div>
       )}
 
-      {!loading && error && (
+      {(authLoading || loading) && user && (
+        <div className="flex items-center justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600" />
+        </div>
+      )}
+
+      {!authLoading && user && !loading && error && (
         <div className="bg-red-50 text-red-700 rounded-md p-4">{error}</div>
       )}
 
-      {!loading && !error && (reports?.length ?? 0) === 0 && (
+      {!authLoading && user && !loading && !error && (reports?.length ?? 0) === 0 && (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -102,7 +159,7 @@ export default function ReportesPage() {
         </div>
       )}
 
-      {!loading && !error && (reports?.length ?? 0) > 0 && (
+      {!authLoading && user && !loading && !error && (reports?.length ?? 0) > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           {reports!.map((r) => (
             <div key={r.filename} className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 overflow-hidden">
@@ -130,18 +187,23 @@ export default function ReportesPage() {
               )}
 
               <div className="mt-2 flex items-center gap-2">
-                <a
-                  href={`/api/reports/${encodeURIComponent(r.filename)}`}
-                  target="_blank"
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
-                >
-                  Ver JSON
-                </a>
                 <button
                   onClick={() => handleViewReport(r.filename)}
                   className="px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-500"
                 >
                   Ver reporte
+                </button>
+                <a
+                  href={`/reportes/${encodeURIComponent(r.filename)}`}
+                  className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                >
+                  Editar
+                </a>
+                <button
+                  onClick={() => handleDeleteReport(r.filename)}
+                  className="px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-500"
+                >
+                  Eliminar
                 </button>
               </div>
             </div>

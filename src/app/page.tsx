@@ -7,6 +7,7 @@ import AnalysisModal from './components/AnalysisModal';
 import { toast } from 'sonner';
 import { ProgressBar } from './components/ProgressBar';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/useAuth';
 
 // Mover esta interfaz a groq.ts si se usa en otros lugares
 interface AnalysisResult {
@@ -21,6 +22,7 @@ interface AnalysisResult {
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { user, getToken } = useAuth();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -112,10 +114,17 @@ export default function Home() {
   const handleSaveReport = async () => {
     if (!analysisResult) return;
     try {
+      // exigir login
+      const token = await getToken();
+      if (!token) {
+        toast.info('Inicia sesión para guardar tus reportes');
+        router.push('/login');
+        return;
+      }
       setSavingReport(true);
       const res = await fetch('/api/reports', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           analysis: analysisResult,
           meta: {

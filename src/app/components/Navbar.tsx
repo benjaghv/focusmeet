@@ -13,10 +13,14 @@ import {
   FaBars,
   FaTimes
 } from "react-icons/fa";
+import { useAuth } from "@/lib/useAuth";
+import { signOut } from "firebase/auth";
+import { getClientAuth } from "@/lib/firebaseClient";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
 
   // Cerrar el menú cuando cambia la ruta
   useEffect(() => {
@@ -75,7 +79,7 @@ export default function Navbar() {
           
           {/* Desktop menu */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
+            <div className="ml-10 flex items-center space-x-4">
               <NavLink href="/">
                 <FaHome className="mr-1" /> Inicio
               </NavLink>
@@ -91,6 +95,29 @@ export default function Navbar() {
               <NavLink href="/feedback">
                 <FaCommentDots className="mr-1" /> Feedback
               </NavLink>
+
+              {/* Auth actions */}
+              <div className="ml-6 flex items-center gap-3">
+                {!user ? (
+                  <>
+                    <Link href="/login" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">Iniciar sesión</Link>
+                    <Link href="/register" className="px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500">Crear cuenta</Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm text-gray-700 hidden lg:inline max-w-[220px] truncate">
+                      {user.displayName || user.email}
+                    </span>
+                    <button
+                      title="Cerrar sesión"
+                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50"
+                      onClick={async () => { await signOut(getClientAuth()); }}
+                    >
+                      Salir
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
@@ -127,6 +154,22 @@ export default function Navbar() {
             <NavLink href="/feedback">
               <FaCommentDots className="mr-2" /> Feedback
             </NavLink>
+
+            {/* Auth actions mobile */}
+            {!user ? (
+              <div className="mt-2 flex items-center gap-2">
+                <Link href="/login" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">Iniciar sesión</Link>
+                <Link href="/register" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500">Crear cuenta</Link>
+              </div>
+            ) : (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-sm text-gray-700 truncate">{user.displayName || user.email}</span>
+                <button
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50"
+                  onClick={async () => { await signOut(getClientAuth()); setIsMenuOpen(false); }}
+                >Salir</button>
+              </div>
+            )}
           </div>
         </div>
       )}

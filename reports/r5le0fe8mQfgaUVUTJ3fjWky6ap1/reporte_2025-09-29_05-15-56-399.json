@@ -1,0 +1,33 @@
+{
+  "createdAt": "2025-09-29T05:15:56.399Z",
+  "analysis": {
+    "shortSummary": "Revisión de síntomas y recomendaciones de tratamiento",
+    "detailedSummary": "El paciente presenta dolor de cabeza y dolor de estómago. Se le recomienda tomar paracetamol y un medicamento para los gases y problemas gástricos. La dosis recomendada es de 100 a 500 miligramos cada 8 o 12 horas durante 7 días.",
+    "keyPoints": [
+      "Dolor de cabeza y estómago",
+      "Recomendación de paracetamol",
+      "Tratamiento para gases y problemas gástricos"
+    ],
+    "decisions": [
+      "Tomar paracetamol y medicamento para gases y problemas gástricos",
+      "Seguir la dosis recomendada durante 7 días"
+    ],
+    "tasks": [
+      {
+        "description": "Tomar paracetamol según la dosis recomendada",
+        "responsible": "Paciente"
+      },
+      {
+        "description": "Monitorear los síntomas y ajustar el tratamiento si es necesario",
+        "responsible": "Profesional de la salud"
+      }
+    ],
+    "sentiment": "neutral"
+  },
+  "meta": {
+    "source": "FocusMeet",
+    "savedAt": "2025-09-29T05:15:56.208Z"
+  },
+  "userId": "r5le0fe8mQfgaUVUTJ3fjWky6ap1",
+  "version": 1
+}
