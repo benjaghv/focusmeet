@@ -37,8 +37,8 @@ export default function RegisterPage() {
       }).catch(() => {});
       toast.success("¡Cuenta creada!");
       router.push("/");
-    } catch (err: any) {
-      const msg = err?.message || "No se pudo crear la cuenta";
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "No se pudo crear la cuenta";
       toast.error(msg);
     } finally {
       setLoading(false);

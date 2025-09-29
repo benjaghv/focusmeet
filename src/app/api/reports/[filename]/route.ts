@@ -5,6 +5,23 @@ import { getDb, verifyRequestAndGetUid } from '@/lib/firebaseAdmin';
  
 export const runtime = 'nodejs';
 
+type ReportTask = { description: string; responsible: string };
+type ReportAnalysis = {
+  shortSummary?: string;
+  detailedSummary?: string;
+  keyPoints?: string[];
+  decisions?: string[];
+  tasks?: ReportTask[];
+};
+type ReportDoc = {
+  userId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  title?: string | null;
+  analysis?: ReportAnalysis;
+  meta?: Record<string, unknown>;
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ filename: string }> }
@@ -25,7 +42,7 @@ export async function GET(
       try {
         const doc = await db.collection('reports').doc(filename).get();
         if (doc.exists) {
-          const data: any = doc.data();
+          const data = doc.data() as ReportDoc;
           if (data.userId && data.userId !== uid) {
             return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
           }
@@ -99,7 +116,7 @@ export async function PATCH(
       const ref = db.collection('reports').doc(filename);
       const snap = await ref.get();
       if (snap.exists) {
-        const data = snap.data() as any;
+        const data = snap.data() as ReportDoc;
         if (data.userId && data.userId !== uid) return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
         await ref.update({
           ...(analysis ? { analysis } : {}),
@@ -115,7 +132,7 @@ export async function PATCH(
     const reportsDir = path.join(process.cwd(), 'reports', uid);
     const filePath = path.join(reportsDir, filename);
     const content = await fs.readFile(filePath, 'utf-8');
-    const data = JSON.parse(content);
+    const data = JSON.parse(content) as ReportDoc;
     const updated = {
       ...data,
       ...(analysis ? { analysis } : {}),
@@ -144,7 +161,7 @@ export async function DELETE(
       const ref = db.collection('reports').doc(filename);
       const snap = await ref.get();
       if (snap.exists) {
-        const data = snap.data() as any;
+        const data = snap.data() as ReportDoc;
         if (data.userId && data.userId !== uid) return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
         await ref.delete();
         return NextResponse.json({ ok: true, source: 'firestore' });

@@ -22,7 +22,7 @@ interface AnalysisResult {
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { user, getToken } = useAuth();
+  const { getToken } = useAuth();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);

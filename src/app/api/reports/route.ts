@@ -6,6 +6,16 @@ import { getDb, verifyRequestAndGetUid } from '@/lib/firebaseAdmin';
 // Asegura el runtime Node.js para permitir acceso al filesystem en App Router
 export const runtime = 'nodejs';
 
+// Tipos compartidos para reportes
+interface ReportTask { description: string; responsible: string }
+interface ReportAnalysis {
+  shortSummary?: string;
+  detailedSummary?: string;
+  keyPoints?: string[];
+  decisions?: string[];
+  tasks?: ReportTask[];
+}
+
 export async function POST(request: Request) {
   try {
     // Requiere autenticación
@@ -37,11 +47,37 @@ export async function POST(request: Request) {
     const filename = `reporte_${timestamp}.json`;
     const filePath = path.join(reportsDir, filename);
 
+    // Generar un título humano a partir del análisis
+    interface ReportTask { description: string; responsible: string }
+    interface ReportAnalysis {
+      shortSummary?: string;
+      detailedSummary?: string;
+      keyPoints?: string[];
+      decisions?: string[];
+      tasks?: ReportTask[];
+    }
+    const deriveTitle = (a: ReportAnalysis | null | undefined): string => {
+      if (!a) return 'Reporte sin título';
+      const s: string = a.shortSummary || '';
+      if (s) {
+        const firstSentence = s.split(/[\.\!\?]/)[0]?.trim();
+        if (firstSentence) return firstSentence.slice(0, 80);
+      }
+      const kp: string[] = Array.isArray(a.keyPoints) ? a.keyPoints : [];
+      if (kp.length) return kp[0].slice(0, 80);
+      const dec: string[] = Array.isArray(a.decisions) ? a.decisions : [];
+      if (dec.length) return dec[0].slice(0, 80);
+      return 'Reporte de reunión';
+    };
+
+    const title = deriveTitle(analysis);
+
     const payload = {
       createdAt: createdAt.toISOString(),
       analysis,
       meta: meta || {},
       userId: uid,
+      title,
       version: 1,
     };
 
@@ -60,7 +96,7 @@ export async function POST(request: Request) {
     // Guardar siempre en filesystem como fallback local
     await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
 
-    return NextResponse.json({ ok: true, filename, id: firestoreId });
+    return NextResponse.json({ ok: true, filename, id: firestoreId, title });
   } catch (error) {
     console.error('Error al guardar el reporte:', error);
     return NextResponse.json(
@@ -91,11 +127,20 @@ export async function GET(request: Request) {
           .orderBy('createdAt', 'desc')
           .limit(50)
           .get();
+        type ReportDoc = {
+          createdAt?: string;
+          title?: string | null;
+          analysis?: ReportAnalysis;
+          decisions?: string[];
+          tasks?: ReportTask[];
+          meta?: Record<string, unknown>;
+        };
         const items = snap.docs.map((doc) => {
-          const data = doc.data() as any;
+          const data = doc.data() as ReportDoc;
           return {
             filename: doc.id,
             createdAt: data.createdAt || null,
+            title: data.title || null,
             summary: data.analysis?.shortSummary || '',
             decisions: data.analysis?.decisions || [],
             tasksCount: data.analysis?.tasks?.length || 0,
@@ -113,15 +158,35 @@ export async function GET(request: Request) {
     await fs.mkdir(reportsDir, { recursive: true });
     const files = await fs.readdir(reportsDir).catch(() => [] as string[]);
     const jsonFiles = files.filter(f => f.endsWith('.json'));
+    const deriveTitle = (a: ReportAnalysis | null | undefined): string => {
+      if (!a) return 'Reporte sin título';
+      const s: string = a.shortSummary || '';
+      if (s) {
+        const firstSentence = s.split(/[\.\!\?]/)[0]?.trim();
+        if (firstSentence) return firstSentence.slice(0, 80);
+      }
+      const kp: string[] = Array.isArray(a.keyPoints) ? a.keyPoints : [];
+      if (kp.length) return kp[0].slice(0, 80);
+      const dec: string[] = Array.isArray(a.decisions) ? a.decisions : [];
+      if (dec.length) return dec[0].slice(0, 80);
+      return 'Reporte de reunión';
+    };
+
     const reports = await Promise.all(
       jsonFiles.map(async (filename) => {
         try {
           const fullPath = path.join(reportsDir, filename);
           const content = await fs.readFile(fullPath, 'utf-8');
-          const data = JSON.parse(content) as any;
+          const data = JSON.parse(content) as {
+            createdAt?: string;
+            title?: string | null;
+            analysis?: ReportAnalysis;
+            meta?: Record<string, unknown>;
+          };
           return {
             filename,
             createdAt: data.createdAt || null,
+            title: data.title || deriveTitle(data.analysis),
             summary: data.analysis?.shortSummary || '',
             decisions: data.analysis?.decisions || [],
             tasksCount: data.analysis?.tasks?.length || 0,

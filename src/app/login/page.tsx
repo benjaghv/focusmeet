@@ -31,8 +31,8 @@ export default function LoginPage() {
       }).catch(() => {});
       toast.success("¡Bienvenido!");
       router.push("/");
-    } catch (err: any) {
-      const msg = err?.message || "No se pudo iniciar sesión";
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "No se pudo iniciar sesión";
       toast.error(msg);
     } finally {
       setLoading(false);

@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/useAuth";
 type ReportListItem = {
   filename: string;
   createdAt: string | null;
+  title?: string | null;
   summary: string;
   decisions: string[];
   tasksCount: number;
@@ -165,8 +166,8 @@ export default function ReportesPage() {
             <div key={r.filename} className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 overflow-hidden">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate break-words" title={r.filename}>
-                    {r.filename}
+                  <h3 className="text-lg font-semibold text-gray-900 truncate break-words" title={r.title || r.filename}>
+                    {r.title || r.filename}
                   </h3>
                   <p className="text-sm text-gray-500">{formatDate(r.createdAt)}</p>
                 </div>
