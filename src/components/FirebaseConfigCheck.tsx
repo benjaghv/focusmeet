@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function FirebaseConfigCheck({ children }: Props) {
-  const { loading, error } = useAuth();
+  const { loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -20,7 +20,7 @@ export default function FirebaseConfigCheck({ children }: Props) {
     );
   }
 
-  if (error) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
