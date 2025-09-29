@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+// Asegura el runtime Node.js para permitir acceso al filesystem en App Router
+export const runtime = 'nodejs';
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
