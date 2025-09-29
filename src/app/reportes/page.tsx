@@ -71,7 +71,7 @@ export default function ReportesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-28 pb-12">{/* pt-28 empuja debajo del Navbar fijo */}
+    <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 overflow-x-hidden">{/* pt-28 empuja debajo del Navbar fijo y evita overflow */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Reportes guardados</h1>
         <div className="flex items-center gap-3">
@@ -103,12 +103,12 @@ export default function ReportesPage() {
       )}
 
       {!loading && !error && (reports?.length ?? 0) > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           {reports!.map((r) => (
-            <div key={r.filename} className="bg-white rounded-lg shadow p-5 flex flex-col gap-3">
+            <div key={r.filename} className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 overflow-hidden">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 truncate" title={r.filename}>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate break-words" title={r.filename}>
                     {r.filename}
                   </h3>
                   <p className="text-sm text-gray-500">{formatDate(r.createdAt)}</p>
@@ -119,11 +119,11 @@ export default function ReportesPage() {
               </div>
 
               {r.summary && (
-                <p className="text-gray-700 text-sm line-clamp-3">{r.summary}</p>
+                <p className="text-gray-700 text-sm line-clamp-3 break-words">{r.summary}</p>
               )}
 
               {r.decisions && r.decisions.length > 0 && (
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-gray-600 break-words">
                   <span className="font-medium">Decisiones:</span> {r.decisions.slice(0, 3).join(" • ")}
                   {r.decisions.length > 3 ? " …" : ""}
                 </div>
