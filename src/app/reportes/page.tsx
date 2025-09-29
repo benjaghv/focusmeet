@@ -57,7 +57,7 @@ export default function ReportesPage() {
       const data = await res.json();
       setReports(data || []);
       setError(null);
-    } catch (e) {
+    } catch {
       // Ante cualquier fallo de red, mostramos vacío sin error para evitar parpadeos
       setReports([]);
       setError(null);
