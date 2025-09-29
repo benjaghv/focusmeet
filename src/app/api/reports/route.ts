@@ -34,9 +34,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const reportsDir = path.join(process.cwd(), 'reports', uid);
-    await fs.mkdir(reportsDir, { recursive: true });
-
     const createdAt = new Date();
     const timestamp = createdAt
       .toISOString()
@@ -45,7 +42,15 @@ export async function POST(request: Request) {
       .replace('Z', '');
 
     const filename = `reporte_${timestamp}.json`;
-    const filePath = path.join(reportsDir, filename);
+    
+    // Solo crear directorios y rutas en desarrollo
+    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    let filePath = '';
+    if (!isProd) {
+      const reportsDir = path.join(process.cwd(), 'reports', uid);
+      await fs.mkdir(reportsDir, { recursive: true });
+      filePath = path.join(reportsDir, filename);
+    }
 
     // Generar un título humano a partir del análisis
     interface ReportTask { description: string; responsible: string }
@@ -85,21 +90,35 @@ export async function POST(request: Request) {
     let firestoreId: string | null = null;
     try {
       const db = getDb();
+      console.log('getDb() result:', db ? 'Firestore configured' : 'Firestore NOT configured');
       if (db) {
+        console.log('Attempting to save to Firestore...');
         const docRef = await db.collection('reports').add(payload);
         firestoreId = docRef.id;
+        console.log('Successfully saved to Firestore with ID:', firestoreId);
+      } else {
+        console.log('Firestore not configured, will use filesystem only');
       }
     } catch (e) {
       console.warn('No se pudo guardar en Firestore, se mantiene sólo FS:', e);
     }
 
-    // Guardar siempre en filesystem como fallback local (solo en desarrollo)
-    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-    if (!isProd) {
+    // Guardar en filesystem como fallback local (solo en desarrollo)
+    if (!isProd && filePath) {
       await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
     }
 
-    return NextResponse.json({ ok: true, filename, id: firestoreId, title });
+    // En producción, requerir que Firestore esté configurado
+    if (isProd && !firestoreId) {
+      return NextResponse.json(
+        { error: 'Error de configuración: no se pudo guardar el reporte' },
+        { status: 500 }
+      );
+    }
+    
+    // Si no hay Firestore configurado, usar el filename del filesystem
+    const responseId = firestoreId || filename;
+    return NextResponse.json({ ok: true, filename, id: responseId, title });
   } catch (error) {
     console.error('Error al guardar el reporte:', error);
     return NextResponse.json(
@@ -122,8 +141,10 @@ export async function GET(request: Request) {
 
     // Intentar listar desde Firestore (solo del usuario)
     const db = getDb();
+    console.log('GET reports - getDb() result:', db ? 'Firestore configured' : 'Firestore NOT configured');
     if (db) {
       try {
+        console.log('Attempting to list from Firestore for user:', uid);
         const snap = await db
           .collection('reports')
           .where('userId', '==', uid)
