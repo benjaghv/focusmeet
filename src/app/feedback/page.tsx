@@ -34,7 +34,7 @@ export default function FeedbackPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div className="bg-white p-8 rounded-lg shadow-md">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">

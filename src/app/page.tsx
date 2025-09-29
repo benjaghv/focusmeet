@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import AnalysisModal from './components/AnalysisModal';
 import { toast } from 'sonner';
 import { ProgressBar } from './components/ProgressBar';
+import { useRouter } from 'next/navigation';
 
 // Mover esta interfaz a groq.ts si se usa en otros lugares
 interface AnalysisResult {
@@ -19,6 +20,7 @@ interface AnalysisResult {
 
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -128,6 +130,8 @@ export default function Home() {
       }
       const data = await res.json();
       toast.success(`Reporte guardado: ${data.filename}`);
+      // Ir a la página de reportes para verlo listado
+      router.push('/reportes');
     } catch (e) {
       console.error('Error guardando reporte:', e);
       toast.error(e instanceof Error ? e.message : 'Error desconocido al guardar el reporte');

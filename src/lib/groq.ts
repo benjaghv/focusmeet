@@ -5,18 +5,9 @@ export interface GroqMessage {
   content: string;
 }
 
-export type GroqModel = 
-  | 'llama3-8b-8192'
-  | 'llama3-70b-8192'
-  | 'mixtral-8x7b-32768'
-  | 'meta-llama/llama-4-scout-17b-16e-instruct';
+export type GroqModel = 'llama-3.3-70b-versatile';
 
-export const GROQ_MODELS: GroqModel[] = [
-  'llama3-70b-8192',                     // Más potente
-  'meta-llama/llama-4-scout-17b-16e-instruct',  // Modelo especializado
-  'mixtral-8x7b-32768',                  // Buen balance
-  'llama3-8b-8192'                      // Más rápido
-];
+export const GROQ_MODELS: GroqModel[] = ['llama-3.3-70b-versatile'];
 
 export interface GroqResponse {
   id: string;

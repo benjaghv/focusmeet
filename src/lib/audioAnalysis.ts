@@ -324,7 +324,7 @@ async function transcribeWithDeepgram(audioBuffer: ArrayBuffer): Promise<Transcr
 
 export async function analyzeTranscription(
   transcription: TranscriptionResult,
-  model: GroqModel = 'llama3-70b-8192'
+  model: GroqModel = 'llama-3.3-70b-versatile'
 ): Promise<AnalysisResult> {
   try {
     const API_KEY = process.env.GROQ_API_KEY;

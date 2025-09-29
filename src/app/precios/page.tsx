@@ -1,7 +1,7 @@
 const plans = [
     {
       name: 'Básico',
-      price: '$9.99',
+      price: '$9.990',
       description: 'Perfecto para equipos pequeños',
       features: [
         'Hasta 5 horas de grabación/mes',
@@ -13,7 +13,7 @@ const plans = [
     },
     {
       name: 'Profesional',
-      price: '$29.99',
+      price: '$29.990',
       description: 'Ideal para equipos profesionales',
       features: [
         'Hasta 20 horas de grabación/mes',
@@ -42,7 +42,7 @@ const plans = [
   
   export default function PreciosPage() {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-26">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Planes de Suscripción</h1>
           <p className="text-xl text-gray-600">Elige el plan que mejor se adapte a tus necesidades</p>

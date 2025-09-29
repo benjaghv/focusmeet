@@ -4,7 +4,7 @@ import { GroqModel } from '@/lib/groq';
 
 export async function POST(request: Request) {
   try {
-    const { text, model = 'llama3-70b-8192' } = await request.json();
+    const { text, model = 'llama-3.3-70b-versatile' } = await request.json();
     
     if (!text) {
       return NextResponse.json(

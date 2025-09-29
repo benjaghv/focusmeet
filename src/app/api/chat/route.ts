@@ -8,7 +8,7 @@ const groq = new Groq({
 
 export async function POST(request: Request) {
   try {
-    const { messages, model = 'llama3-70b-8192' } = await request.json();
+    const { messages, model = 'llama-3.3-70b-versatile' } = await request.json();
     
     const completion = await groq.chat.completions.create({
       messages,

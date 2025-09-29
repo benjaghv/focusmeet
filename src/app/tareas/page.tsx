@@ -1,6 +1,6 @@
 export default function TareasPage() {
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-20">
       <div className="max-w-4xl mx-auto bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Mis Tareas</h1>
         <div className="bg-white rounded-lg shadow p-6 text-center">

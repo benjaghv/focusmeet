@@ -48,3 +48,53 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function GET() {
+  try {
+    const reportsDir = path.join(process.cwd(), 'reports');
+    await fs.mkdir(reportsDir, { recursive: true });
+
+    const files = await fs.readdir(reportsDir);
+    const jsonFiles = files.filter(f => f.endsWith('.json'));
+
+    const reports = await Promise.all(
+      jsonFiles.map(async (filename) => {
+        try {
+          const fullPath = path.join(reportsDir, filename);
+          const content = await fs.readFile(fullPath, 'utf-8');
+          const data = JSON.parse(content) as {
+            createdAt?: string;
+            analysis?: {
+              shortSummary?: string;
+              keyPoints?: string[];
+              decisions?: string[];
+              tasks?: Array<{ description: string; responsible: string }>;
+            };
+            meta?: Record<string, unknown>;
+            version?: number;
+          };
+          return {
+            filename,
+            createdAt: data.createdAt || null,
+            summary: data.analysis?.shortSummary || '',
+            decisions: data.analysis?.decisions || [],
+            tasksCount: data.analysis?.tasks?.length || 0,
+            meta: data.meta || {},
+          };
+        } catch (e) {
+          console.warn('No se pudo leer un reporte:', filename, e);
+          return null;
+        }
+      })
+    );
+
+    const cleaned = reports.filter(Boolean);
+    return NextResponse.json(cleaned);
+  } catch (error) {
+    console.error('Error al listar reportes:', error);
+    return NextResponse.json(
+      { error: 'Error al listar reportes' },
+      { status: 500 }
+    );
+  }
+}
