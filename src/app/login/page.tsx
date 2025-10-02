@@ -40,7 +40,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28 pb-10 px-4">
+    <div className="min-h-screen pt-28 pb-10 px-4">
       <div className="max-w-md mx-auto bg-white rounded-xl shadow p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2 text-center">Iniciar sesión</h1>
         <p className="text-sm text-gray-600 mb-6 text-center">Usa tu correo y contraseña</p>

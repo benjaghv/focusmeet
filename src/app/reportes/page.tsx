@@ -66,13 +66,13 @@ export default function ReportesPage() {
       setLoaded(true);
       setLoading(false);
     }
-  }, [getToken, loaded]); // 👈 dependencia estable
+  }, [getToken, loaded]); 
 
   useEffect(() => {
     if (!authLoading) {
       loadReports();
     }
-  }, [authLoading, loadReports]); // 👈 ya no da warning
+  }, [authLoading, loadReports]); 
 
   const formatDate = (iso?: string | null) => {
     if (!iso) return "Fecha desconocida";

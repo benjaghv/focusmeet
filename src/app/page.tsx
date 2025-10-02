@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import Navbar from './components/Navbar';
 import AnalysisModal from './components/AnalysisModal';
 import { toast } from 'sonner';
 import { ProgressBar } from './components/ProgressBar';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 
 // Mover esta interfaz a groq.ts si se usa en otros lugares
@@ -22,6 +22,7 @@ interface AnalysisResult {
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { getToken } = useAuth();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,6 +30,34 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [progressStatus, setProgressStatus] = useState('Preparando...');
   const [savingReport, setSavingReport] = useState(false);
+  const [patientId, setPatientId] = useState<string | null>(null);
+  const [patientName, setPatientName] = useState<string | null>(null);
+
+  // Obtener patientId de la URL si existe
+  useEffect(() => {
+    const pid = searchParams.get('patientId');
+    if (pid) {
+      setPatientId(pid);
+      // Cargar nombre del paciente
+      loadPatientName(pid);
+    }
+  }, [searchParams]);
+
+  const loadPatientName = async (pid: string) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch(`/api/patients/${pid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPatientName(data.nombre);
+      }
+    } catch (e) {
+      console.error('Error loading patient:', e);
+    }
+  };
 
   const updateProgress = (value: number, status: string) => {
     setProgress(value);
@@ -131,6 +160,7 @@ export default function Home() {
             source: 'FocusMeet',
             savedAt: new Date().toISOString(),
           },
+          ...(patientId ? { patientId } : {}),
         }),
       });
       if (!res.ok) {
@@ -139,8 +169,12 @@ export default function Home() {
       }
       const data = await res.json();
       toast.success(`Reporte guardado: ${data.filename}`);
-      // Ir a la página de reportes para verlo listado
-      router.push('/reportes');
+      // Si hay paciente, volver a su ficha; sino, ir a reportes
+      if (patientId) {
+        router.push(`/pacientes/${patientId}`);
+      } else {
+        router.push('/reportes');
+      }
     } catch (e) {
       console.error('Error guardando reporte:', e);
       toast.error(e instanceof Error ? e.message : 'Error desconocido al guardar el reporte');
@@ -155,6 +189,13 @@ export default function Home() {
       <Navbar />
       <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
         <div className="text-center max-w-2xl mx-auto">
+          {patientName && (
+            <div className="mb-6 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <p className="text-sm text-indigo-800">
+                📋 Creando reporte para: <span className="font-semibold">{patientName}</span>
+              </p>
+            </div>
+          )}
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             FocusMeet
           </h1>

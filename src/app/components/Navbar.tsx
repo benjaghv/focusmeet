@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { 
   FaHome, 
   FaChartBar, 
-  FaClipboardList, 
+  FaUser, 
   FaTags, 
   FaCommentDots,
   FaBars,
@@ -86,8 +86,8 @@ export default function Navbar() {
               <NavLink href="/reportes">
                 <FaChartBar className="mr-1" /> Reportes
               </NavLink>
-              <NavLink href="/tareas">
-                <FaClipboardList className="mr-1" /> Tareas
+              <NavLink href="/pacientes">
+                <FaUser className="mr-1" /> Pacientes
               </NavLink>
               <NavLink href="/precios">
                 <FaTags className="mr-1" /> Precios
@@ -145,8 +145,8 @@ export default function Navbar() {
             <NavLink href="/reportes">
               <FaChartBar className="mr-2" /> Reportes
             </NavLink>
-            <NavLink href="/tareas">
-              <FaClipboardList className="mr-2" /> Tareas
+            <NavLink href="/pacientes">
+              <FaUser className="mr-2" /> Pacientes
             </NavLink>
             <NavLink href="/precios">
               <FaTags className="mr-2" /> Precios

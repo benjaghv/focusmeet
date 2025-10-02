@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { analysis, meta } = body || {};
+    const { analysis, meta, patientId } = body || {};
 
     if (!analysis) {
       return NextResponse.json(
@@ -84,6 +84,7 @@ export async function POST(request: Request) {
       userId: uid,
       title,
       version: 1,
+      ...(patientId ? { patientId } : {}),
     };
 
     // Intentar guardar en Firestore si está configurado

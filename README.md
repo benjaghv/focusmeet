@@ -1,8 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FocusMeet AI
 
-## Getting Started
+Aplicación inteligente para analizar reuniones de Meet o Zoom. Sube tu grabación y obtén insights clave, resúmenes, decisiones y tareas automáticamente usando IA.
 
-First, run the development server:
+## 🚀 Características
+
+- **Análisis de Audio/Video**: Transcripción automática y análisis inteligente de reuniones
+- **Gestión de Pacientes**: Sistema completo para gestionar pacientes y sus reportes asociados
+- **Reportes Detallados**: Generación automática de resúmenes, puntos clave, decisiones y tareas
+- **Autenticación**: Sistema de login/registro con Firebase Auth
+- **Base de Datos**: Almacenamiento en Firestore con soporte para desarrollo local
+
+## 📋 Estructura del Proyecto
+
+```
+src/
+├── app/
+│   ├── api/              # Endpoints de la API
+│   │   ├── patients/     # CRUD de pacientes
+│   │   ├── reports/      # CRUD de reportes
+│   │   └── chat/         # Transcripción y análisis
+│   ├── components/       # Componentes reutilizables
+│   ├── pacientes/        # Páginas de gestión de pacientes
+│   ├── reportes/         # Páginas de reportes
+│   └── page.tsx          # Página principal (upload)
+└── lib/
+    ├── firebaseClient.ts # Configuración Firebase cliente
+    ├── firebaseAdmin.ts  # Configuración Firebase admin
+    └── useAuth.ts        # Hook de autenticación
+```
+
+## 🛠️ Tecnologías
+
+- **Framework**: Next.js 15 (App Router)
+- **Lenguaje**: TypeScript
+- **Estilos**: Tailwind CSS
+- **Base de Datos**: Firebase Firestore
+- **Autenticación**: Firebase Auth
+- **IA**: Groq API (Llama 3.3)
+- **Transcripción**: Groq Whisper
+
+## ⚙️ Configuración
+
+### 🔥 Configuración Completa de Firebase
+
+**Para configurar Firebase y Firestore desde cero, sigue la guía detallada:**
+
+👉 **[FIREBASE_SETUP.md](./FIREBASE_SETUP.md)** - Guía paso a paso completa
+
+Esta guía incluye:
+- Creación de proyecto en Firebase
+- Obtención de credenciales (cliente y admin)
+- Configuración de Firestore y reglas de seguridad
+- Creación de índices compuestos
+- Configuración de Authentication
+- Solución de problemas comunes
+
+### Variables de Entorno (Resumen)
+
+Crea un archivo `.env.local` con las siguientes variables:
+
+```env
+# Firebase Client (públicas)
+NEXT_PUBLIC_FIREBASE_API_KEY=tu_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=tu_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=tu_project_id
+
+# Firebase Admin (privadas)
+FIREBASE_PROJECT_ID=tu_project_id
+FIREBASE_CLIENT_EMAIL=tu_client_email
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Groq API
+GROQ_API_KEY=tu_groq_api_key
+```
+
+**Nota:** Puedes copiar `env.example` como plantilla.
+
+### Verificar Configuración
+
+Después de configurar las variables de entorno, verifica que todo funcione:
+
+```bash
+# Inicia el servidor
+npm run dev
+
+# Abre en tu navegador
+http://localhost:3000/api/test-firestore
+```
+
+Deberías ver `"success": true` si Firestore está correctamente configurado.
+
+### Índices de Firestore
+
+Los índices se pueden crear automáticamente cuando hagas tu primera query (Firestore te dará un enlace), o manualmente siguiendo [FIRESTORE_INDEXES.md](./FIRESTORE_INDEXES.md).
+
+## 🚀 Instalación y Desarrollo
+
+Primero, instala las dependencias:
+
+```bash
+npm install
+```
+
+Luego, ejecuta el servidor de desarrollo:
 
 ```bash
 npm run dev
@@ -14,23 +114,93 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📱 Flujo de Uso
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Gestión de Pacientes
 
-## Learn More
+1. Ve a `/pacientes`
+2. Haz clic en "Nuevo Paciente"
+3. Completa los datos del paciente (nombre, edad, diagnóstico, etc.)
+4. Guarda el paciente
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Crear Reporte para un Paciente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Desde la ficha del paciente (`/pacientes/[id]`), haz clic en "Nuevo Reporte"
+2. Serás redirigido a la página principal con el paciente pre-seleccionado
+3. Sube un archivo de audio (.mp3) o video (.mp4)
+4. Espera a que se complete el análisis
+5. Revisa el reporte generado y guárdalo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. Ver y Editar Reportes
 
-## Deploy on Vercel
+- **Por paciente**: En `/pacientes/[id]` verás todos los reportes del paciente
+- **Todos los reportes**: En `/reportes` verás todos tus reportes
+- **Editar**: Haz clic en "Editar" para modificar cualquier campo del reporte
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🏗️ Arquitectura
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Modelo de Datos
+
+**Paciente (Patient)**
+```typescript
+{
+  id: string;
+  nombre: string;
+  edad?: number;
+  telefono?: string;
+  email?: string;
+  diagnostico?: string;
+  notas?: string;
+  userId: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+```
+
+**Reporte (Report)**
+```typescript
+{
+  id: string;
+  userId: string;
+  patientId?: string;  // Opcional: asocia el reporte a un paciente
+  title: string;
+  createdAt: string;
+  updatedAt?: string;
+  analysis: {
+    shortSummary: string;
+    detailedSummary: string;
+    keyPoints: string[];
+    decisions: string[];
+    tasks: Array<{
+      description: string;
+      responsible: string;
+    }>;
+  };
+  meta: Record<string, unknown>;
+}
+```
+
+## 🔐 Seguridad
+
+- Todos los endpoints de API requieren autenticación mediante Firebase Auth
+- Los usuarios solo pueden acceder a sus propios pacientes y reportes
+- Las reglas de seguridad de Firestore deben configurarse apropiadamente
+
+## 📝 Notas de Desarrollo
+
+- En desarrollo, los reportes se guardan tanto en Firestore como en el filesystem local (`/reports`)
+- En producción, solo se usa Firestore
+- Los índices de Firestore son necesarios para queries complejas (ver `FIRESTORE_INDEXES.md`)
+
+## 🚀 Deploy en Vercel
+
+1. Conecta tu repositorio a Vercel
+2. Configura las variables de entorno en el dashboard de Vercel
+3. Asegúrate de crear los índices de Firestore antes del primer uso
+4. Deploy automático en cada push a main
+
+## 📄 Licencia
+
+Este proyecto está bajo licencia MIT.
