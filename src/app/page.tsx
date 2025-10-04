@@ -1,6 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from 'react';
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+import { useRef, useState, useEffect, Suspense } from 'react';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import Navbar from './components/Navbar';
 import AnalysisModal from './components/AnalysisModal';
@@ -8,6 +11,8 @@ import { toast } from 'sonner';
 import { ProgressBar } from './components/ProgressBar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
+
+
 
 // Mover esta interfaz a groq.ts si se usa en otros lugares
 interface AnalysisResult {
@@ -17,6 +22,15 @@ interface AnalysisResult {
   decisions: string[];
   tasks: { description: string; responsible: string }[];
   sentiment?: string;
+}
+
+function PatientParams({ onLoad }: { onLoad: (pid: string) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const pid = searchParams.get('patientId');
+    if (pid) onLoad(pid);
+  }, [searchParams, onLoad]);
+  return null;
 }
 
 export default function Home() {
@@ -106,7 +120,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           text: transcription.text,
           model: 'llama-3.3-70b-versatile'
         })
@@ -119,13 +133,13 @@ export default function Home() {
 
       updateProgress(90, 'Generando informe...');
       const result = await analysisResponse.json();
-      
+
       setAnalysisResult(result);
       updateProgress(100, '¡Análisis completado!');
-      
+
       // Pequeño retraso para mostrar el 100%
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setIsModalOpen(true);
       toast.success("¡Análisis completado exitosamente!");
     } catch (error) {
@@ -187,6 +201,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
       <Navbar />
+      <Suspense fallback={null}>
+        <PatientParams
+          onLoad={(pid) => {
+            setPatientId(pid);
+            loadPatientName(pid);
+          }}
+        />
+      </Suspense>
       <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
         <div className="text-center max-w-2xl mx-auto">
           {patientName && (
@@ -203,16 +225,15 @@ export default function Home() {
             Analiza tus reuniones de Meet o Zoom de forma inteligente. <br />
             Sube tu grabación y obtén insights clave en segundos.
           </p>
-          
+
           <div className="relative group">
             <button
               onClick={handleButtonClick}
               disabled={isAnalyzing}
-              className={`cursor-pointer px-8 py-4 bg-indigo-900 text-white rounded-full text-lg font-semibold shadow-lg transform transition-all duration-300 ${
-                isAnalyzing 
-                  ? 'opacity-70 cursor-not-allowed' 
+              className={`cursor-pointer px-8 py-4 bg-indigo-900 text-white rounded-full text-lg font-semibold shadow-lg transform transition-all duration-300 ${isAnalyzing
+                  ? 'opacity-70 cursor-not-allowed'
                   : 'hover:scale-105 hover:bg-indigo-800 active:scale-95'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <FaCloudUploadAlt className="text-2xl group-hover:animate-bounce" />
@@ -229,11 +250,11 @@ export default function Home() {
             />
           </div>
           <div className="mt-8">
-          {/* Barra de progreso */}
-          <ProgressBar
-            progress={progress} 
-            status={progressStatus} 
-          />
+            {/* Barra de progreso */}
+            <ProgressBar
+              progress={progress}
+              status={progressStatus}
+            />
           </div>
         </div>
       </div>
