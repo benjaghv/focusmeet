@@ -36,7 +36,6 @@ function PatientParams({ onLoad }: { onLoad: (pid: string) => void }) {
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { getToken } = useAuth();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,16 +45,6 @@ export default function Home() {
   const [savingReport, setSavingReport] = useState(false);
   const [patientId, setPatientId] = useState<string | null>(null);
   const [patientName, setPatientName] = useState<string | null>(null);
-
-  // Obtener patientId de la URL si existe
-  useEffect(() => {
-    const pid = searchParams.get('patientId');
-    if (pid) {
-      setPatientId(pid);
-      // Cargar nombre del paciente
-      loadPatientName(pid);
-    }
-  }, [searchParams]);
 
   const loadPatientName = async (pid: string) => {
     try {
