@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaCheckCircle, FaExclamationTriangle, FaSpinner } from "react-icons/fa";
+import { FaExclamationTriangle, FaSpinner } from "react-icons/fa";
 
 export default function FirestoreStatus() {
   const [status, setStatus] = useState<{
