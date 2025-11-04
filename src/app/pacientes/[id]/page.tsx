@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/useAuth";
 import { toast } from "sonner";
 import AnalysisModal from "@/app/components/AnalysisModal";
 import { FaArrowLeft, FaEdit, FaPlus, FaTrash, FaFileAlt } from "react-icons/fa";
-import ReportEditModal from "@/app/components/ReportEditModal";
+
 
 type Patient = {
   id: string;
