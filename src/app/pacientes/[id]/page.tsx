@@ -47,11 +47,12 @@ export default function PatientDetailPage() {
     decisions: string[];
     tasks: { description: string; responsible: string }[];
   } | null>(null);
-  const [editReportId, setEditReportId] = useState<string | null>(null);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editModalLoading, setEditModalLoading] = useState(false);
-  const [editModalSaving, setEditModalSaving] = useState(false);
-  const [editModalAnalysis, setEditModalAnalysis] = useState<Analysis | null>(null);
+  // Variables de estado para edición de reportes (comentadas temporalmente)
+  // const [editReportId, setEditReportId] = useState<string | null>(null);
+  // const [editModalOpen, setEditModalOpen] = useState(false);
+  // const [editModalLoading, setEditModalLoading] = useState(false);
+  // const [editModalSaving, setEditModalSaving] = useState(false);
+  // const [editModalAnalysis, setEditModalAnalysis] = useState<any | null>(null);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -195,39 +196,6 @@ export default function PatientDetailPage() {
   //   } catch (e) {
   //     toast.error(e instanceof Error ? e.message : "Error desconocido al cargar el reporte");
   //     setEditModalOpen(false);
-  //   } finally {
-  //     setEditModalLoading(false);
-  //   }
-  // };
-
-  const handleSaveReportEdits = async (analysis: Analysis) => {
-    if (!editReportId) return;
-    try {
-      const token = await getToken();
-      if (!token) {
-        toast.info("Inicia sesión para guardar");
-        return;
-      }
-      setEditModalSaving(true);
-      const res = await fetch(`/api/reports/${encodeURIComponent(editReportId)}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ analysis }),
-      });
-      if (!res.ok) throw new Error("No se pudo guardar el reporte");
-      toast.success("Reporte actualizado");
-      setEditModalOpen(false);
-      await loadReports();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Error desconocido al guardar");
-    } finally {
-      setEditModalSaving(false);
-    }
-  };
-
   const handleViewReport = async (filename: string) => {
     try {
       const token = await getToken();
@@ -641,14 +609,15 @@ export default function PatientDetailPage() {
             }
           }
         />
-        <ReportEditModal
+        {/* Modal de edición de reportes (comentado temporalmente) */}
+        {/* <ReportEditModal
           isOpen={editModalOpen}
           loading={editModalLoading}
           saving={editModalSaving}
           initialAnalysis={editModalAnalysis}
           onClose={() => setEditModalOpen(false)}
           onSave={handleSaveReportEdits}
-        />
+        /> */}
       </div>
     </div>
   );
