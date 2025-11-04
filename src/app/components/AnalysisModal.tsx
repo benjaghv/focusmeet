@@ -129,14 +129,16 @@ export default function AnalysisModal({ isOpen, onClose, analysis, onSave, savin
                   >
                     Cerrar
                   </button>
-                  <button
-                    type="button"
-                    className={`inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm ${saving ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'}`}
-                    onClick={() => onSave && onSave()}
-                    disabled={saving || !onSave}
-                  >
-                    {saving ? 'Guardando...' : 'Guardar reporte'}
-                  </button>
+                  {onSave && (
+                    <button
+                      type="button"
+                      className={`inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm ${saving ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'}`}
+                      onClick={() => onSave()}
+                      disabled={saving}
+                    >
+                      {saving ? 'Guardando...' : 'Guardar reporte'}
+                    </button>
+                  )}
                 </div>
               </Dialog.Panel>
             </Transition.Child>

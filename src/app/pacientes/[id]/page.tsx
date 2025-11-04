@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/useAuth";
 import { toast } from "sonner";
 import AnalysisModal from "@/app/components/AnalysisModal";
 import { FaArrowLeft, FaEdit, FaPlus, FaTrash, FaFileAlt } from "react-icons/fa";
+import ReportEditModal from "@/app/components/ReportEditModal";
 
 type Patient = {
   id: string;
@@ -46,6 +47,11 @@ export default function PatientDetailPage() {
     decisions: string[];
     tasks: { description: string; responsible: string }[];
   } | null>(null);
+  const [editReportId, setEditReportId] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editModalLoading, setEditModalLoading] = useState(false);
+  const [editModalSaving, setEditModalSaving] = useState(false);
+  const [editModalAnalysis, setEditModalAnalysis] = useState<Analysis | null>(null);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -150,6 +156,75 @@ export default function PatientDetailPage() {
       await loadPatient();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error desconocido");
+    }
+  };
+
+  // Función para editar reportes (disponible para uso futuro)
+  // const handleEditReport = async (filename: string) => {
+  //   try {
+  //     setEditReportId(filename);
+  //     setEditModalOpen(true);
+  //     setEditModalLoading(true);
+  //     setEditModalAnalysis(null);
+
+  //     const token = await getToken();
+  //     if (!token) {
+  //       setError("Debes iniciar sesión para editar reportes");
+  //       setEditModalLoading(false);
+  //       return;
+  //     }
+
+  //     const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
+  //       cache: "no-store",
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+
+  //     if (!res.ok) {
+  //       throw new Error("No se pudo cargar el reporte para edición");
+  //     }
+
+  //     const data = await res.json();
+  //     const analysis = (data && data.analysis) || {};
+  //     setEditModalAnalysis({
+  //       shortSummary: analysis.shortSummary || "",
+  //       detailedSummary: analysis.detailedSummary || "",
+  //       keyPoints: analysis.keyPoints || [],
+  //       decisions: analysis.decisions || [],
+  //       tasks: analysis.tasks || [],
+  //     });
+  //   } catch (e) {
+  //     toast.error(e instanceof Error ? e.message : "Error desconocido al cargar el reporte");
+  //     setEditModalOpen(false);
+  //   } finally {
+  //     setEditModalLoading(false);
+  //   }
+  // };
+
+  const handleSaveReportEdits = async (analysis: Analysis) => {
+    if (!editReportId) return;
+    try {
+      const token = await getToken();
+      if (!token) {
+        toast.info("Inicia sesión para guardar");
+        return;
+      }
+      setEditModalSaving(true);
+      const res = await fetch(`/api/reports/${encodeURIComponent(editReportId)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ analysis }),
+      });
+      if (!res.ok) throw new Error("No se pudo guardar el reporte");
+      toast.success("Reporte actualizado");
+      setEditModalOpen(false);
+      await loadReports();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error desconocido al guardar");
+    } finally {
+      setEditModalSaving(false);
     }
   };
 
@@ -275,7 +350,8 @@ export default function PatientDetailPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-28 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
+      <div className="max-w-6xl mx-auto px-4 pt-28 pb-12">
       {/* Header */}
       <div className="mb-6">
         <button
@@ -505,7 +581,19 @@ export default function PatientDetailPage() {
                   />
                 </div>
 
-                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Diagnóstico
+                  </label>
+                  <textarea
+                    value={formData.diagnostico}
+                    onChange={(e) =>
+                      setFormData({ ...formData, diagnostico: e.target.value })
+                    }
+                    rows={3}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -541,18 +629,27 @@ export default function PatientDetailPage() {
         </div>
       )}
 
-      <AnalysisModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        analysis={
-          modalAnalysis ?? {
-            summary: "",
-            keyPoints: [],
-            decisions: [],
-            tasks: [],
+        <AnalysisModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          analysis={
+            modalAnalysis ?? {
+              summary: "",
+              keyPoints: [],
+              decisions: [],
+              tasks: [],
+            }
           }
-        }
-      />
+        />
+        <ReportEditModal
+          isOpen={editModalOpen}
+          loading={editModalLoading}
+          saving={editModalSaving}
+          initialAnalysis={editModalAnalysis}
+          onClose={() => setEditModalOpen(false)}
+          onSave={handleSaveReportEdits}
+        />
+      </div>
     </div>
   );
 }

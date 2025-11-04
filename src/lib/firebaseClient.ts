@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 // Using Next public envs for client
 const config = {
@@ -18,4 +18,13 @@ export function getFirebaseClientApp() {
 export function getClientAuth() {
   const app = getFirebaseClientApp();
   return getAuth(app);
+}
+
+export function getGoogleProvider() {
+  const provider = new GoogleAuthProvider();
+  // Forzar selección de cuenta cada vez
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
+  return provider;
 }

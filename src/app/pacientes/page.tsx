@@ -1,22 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/useAuth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FaUser, FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import FirestoreStatus from "../components/FirestoreStatus";
-
-type Patient = {
-  id: string;
-  nombre: string;
-  edad?: number;
-  telefono?: string;
-  email?: string;
-  diagnostico?: string;
-  notas?: string;
-  createdAt: string;
-};
+import PatientDetailsModal from "../components/PatientDetailsModal";
+import type { Patient } from "@/types/patient";
 
 export default function PacientesPage() {
   const { user, loading: authLoading, getToken } = useAuth();
@@ -27,6 +18,8 @@ export default function PacientesPage() {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
+  const [deletingPatientId, setDeletingPatientId] = useState<string | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -38,7 +31,7 @@ export default function PacientesPage() {
     notas: "",
   });
 
-  const loadPatients = useCallback(async () => {
+  const loadPatients = useCallback(async (): Promise<Patient[]> => {
     try {
       if (!loaded) setLoading(true);
       const token = await getToken();
@@ -47,7 +40,7 @@ export default function PacientesPage() {
         setError(null);
         setLoading(false);
         setLoaded(true);
-        return;
+        return [];
       }
 
       const res = await fetch("/api/patients", {
@@ -61,15 +54,18 @@ export default function PacientesPage() {
         setPatients([]);
         setError(null);
         setLoaded(true);
-        return;
+        return [];
       }
 
       const data = await res.json();
-      setPatients(data || []);
+      const list = Array.isArray(data) ? (data as Patient[]) : [];
+      setPatients(list);
       setError(null);
+      return list;
     } catch {
       setPatients([]);
       setError(null);
+      return [];
     } finally {
       setLoaded(true);
       setLoading(false);
@@ -160,16 +156,22 @@ export default function PacientesPage() {
       );
       
       handleCloseModal();
-      await loadPatients();
+      const updated = await loadPatients();
+      if (editingPatient) {
+        const latest = updated.find((p) => p.id === editingPatient.id);
+        if (latest) {
+          setViewingPatient(latest);
+        }
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error desconocido");
     }
   };
 
-  const handleDeletePatient = async (id: string, nombre: string) => {
+  const handleDeletePatient = async (patient: Patient) => {
     try {
       const ok = confirm(
-        `¿Eliminar al paciente "${nombre}"? Esta acción eliminará también todos sus reportes asociados y no se puede deshacer.`
+        `¿Eliminar al paciente "${patient.nombre}"? Esta acción eliminará también todos sus reportes asociados y no se puede deshacer.`
       );
       if (!ok) return;
 
@@ -179,7 +181,9 @@ export default function PacientesPage() {
         return;
       }
 
-      const res = await fetch(`/api/patients/${id}`, {
+      setDeletingPatientId(patient.id);
+
+      const res = await fetch(`/api/patients/${patient.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -188,8 +192,11 @@ export default function PacientesPage() {
 
       toast.success("Paciente eliminado exitosamente");
       await loadPatients();
+      setViewingPatient(null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error desconocido");
+    } finally {
+      setDeletingPatientId(null);
     }
   };
 
@@ -204,21 +211,17 @@ export default function PacientesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 overflow-x-hidden">
-      <FirestoreStatus />
-      
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
+      <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 overflow-x-hidden">
+        <FirestoreStatus />
+        
+        <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Mis Pacientes</h1>
         <div className="flex items-center gap-3">
-          <button
-            onClick={loadPatients}
-            className="px-3 py-2 text-sm font-medium rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50"
-          >
-            Actualizar
-          </button>
+          
           <button
             onClick={() => handleOpenModal()}
-            className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-500 flex items-center gap-2"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-2 transition-colors duration-200"
           >
             <FaPlus /> Nuevo Paciente
           </button>
@@ -268,7 +271,7 @@ export default function PacientesPage() {
           <p className="mt-1 text-gray-500">Comienza agregando tu primer paciente.</p>
           <button
             onClick={() => handleOpenModal()}
-            className="mt-4 px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 text-sm font-medium inline-flex items-center gap-2"
+            className="mt-4 px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-medium inline-flex items-center gap-2 transition-colors duration-200"
           >
             <FaPlus /> Nuevo Paciente
           </button>
@@ -280,7 +283,7 @@ export default function PacientesPage() {
           {patients!.map((p) => (
             <div
               key={p.id}
-              className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 hover:shadow-xl transition-shadow duration-300"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
@@ -311,21 +314,21 @@ export default function PacientesPage() {
 
               <div className="mt-2 flex items-center gap-2">
                 <button
-                  onClick={() => router.push(`/pacientes/${p.id}`)}
-                  className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-500 flex items-center justify-center gap-1"
+                  onClick={() => setViewingPatient(p)}
+                  className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center gap-1 transition-colors duration-200"
                 >
                   <FaEye /> Ver Ficha
                 </button>
                 <button
                   onClick={() => handleOpenModal(p)}
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200"
                   title="Editar"
                 >
                   <FaEdit />
                 </button>
                 <button
-                  onClick={() => handleDeletePatient(p.id, p.nombre)}
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-500"
+                  onClick={() => handleDeletePatient(p)}
+                  className="px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors duration-200"
                   title="Eliminar"
                 >
                   <FaTrash />
@@ -429,13 +432,13 @@ export default function PacientesPage() {
               <div className="mt-6 flex items-center gap-3">
                 <button
                   onClick={handleSavePatient}
-                  className="flex-1 px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 font-medium"
+                  className="flex-1 px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 font-medium transition-colors duration-200"
                 >
                   {editingPatient ? "Guardar Cambios" : "Crear Paciente"}
                 </button>
                 <button
                   onClick={handleCloseModal}
-                  className="px-4 py-2 rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
+                  className="px-4 py-2 rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition-colors duration-200"
                 >
                   Cancelar
                 </button>
@@ -444,6 +447,23 @@ export default function PacientesPage() {
           </div>
         </div>
       )}
+
+      <PatientDetailsModal
+        patient={viewingPatient}
+        isOpen={!!viewingPatient}
+        onClose={() => setViewingPatient(null)}
+        onEdit={(patient) => {
+          setViewingPatient(null);
+          handleOpenModal(patient);
+        }}
+        onDelete={handleDeletePatient}
+        deletingId={deletingPatientId}
+        onCreateReport={(patient) => {
+          setViewingPatient(null);
+          router.push(`/?patientId=${patient.id}`);
+        }}
+      />
     </div>
+    </div> 
   );
 }

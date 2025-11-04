@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import AnalysisModal from "../components/AnalysisModal";
 import { useAuth } from "@/lib/useAuth";
+import ReportEditModal, { ReportAnalysis } from "../components/ReportEditModal";
+import { toast } from "sonner";
 
 type ReportListItem = {
   filename: string;
@@ -27,6 +29,11 @@ export default function ReportesPage() {
     decisions: string[];
     tasks: { description: string; responsible: string }[];
   } | null>(null);
+  const [editReportId, setEditReportId] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editModalLoading, setEditModalLoading] = useState(false);
+  const [editModalSaving, setEditModalSaving] = useState(false);
+  const [editModalAnalysis, setEditModalAnalysis] = useState<ReportAnalysis | null>(null);
 
   // 👇 useCallback para que no cambie en cada render
   const loadReports = useCallback(async () => {
@@ -88,7 +95,7 @@ export default function ReportesPage() {
     try {
       const token = await getToken();
       if (!token) {
-        setError("Debes iniciar sesión para abrir el reporte");
+        toast.error("Debes iniciar sesión para abrir el reporte");
         return;
       }
       const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
@@ -106,7 +113,7 @@ export default function ReportesPage() {
       });
       setIsModalOpen(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error desconocido al abrir el reporte");
+      toast.error(e instanceof Error ? e.message : "Error desconocido al abrir el reporte");
     }
   };
 
@@ -116,7 +123,7 @@ export default function ReportesPage() {
       if (!ok) return;
       const token = await getToken();
       if (!token) {
-        setError("Debes iniciar sesión para eliminar reportes");
+        toast.error("Debes iniciar sesión para eliminar reportes");
         return;
       }
       const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
@@ -124,23 +131,89 @@ export default function ReportesPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("No se pudo eliminar el reporte");
+      toast.success("Reporte eliminado exitosamente");
       await loadReports();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error desconocido al eliminar");
+      toast.error(e instanceof Error ? e.message : "Error desconocido al eliminar");
+    }
+  };
+
+  const handleEditReport = async (filename: string) => {
+    try {
+      setEditReportId(filename);
+      setEditModalOpen(true);
+      setEditModalLoading(true);
+      setEditModalAnalysis(null);
+
+      const token = await getToken();
+      if (!token) {
+        toast.error("Debes iniciar sesión para editar reportes");
+        setEditModalLoading(false);
+        setEditModalOpen(false);
+        return;
+      }
+
+      const res = await fetch(`/api/reports/${encodeURIComponent(filename)}`, {
+        cache: "no-store",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        throw new Error("No se pudo cargar el reporte para edición");
+      }
+
+      const data = await res.json();
+      const analysis = (data && data.analysis) || {};
+      setEditModalAnalysis({
+        shortSummary: analysis.shortSummary || "",
+        detailedSummary: analysis.detailedSummary || "",
+        keyPoints: analysis.keyPoints || [],
+        decisions: analysis.decisions || [],
+        tasks: analysis.tasks || [],
+      });
+    } catch (e) {
+      setEditModalOpen(false);
+      toast.error(e instanceof Error ? e.message : "Error desconocido al cargar el reporte");
+    } finally {
+      setEditModalLoading(false);
+    }
+  };
+
+  const handleSaveReportEdits = async (analysis: ReportAnalysis) => {
+    if (!editReportId) return;
+    try {
+      const token = await getToken();
+      if (!token) {
+        toast.error("Debes iniciar sesión para guardar reportes");
+        return;
+      }
+      setEditModalSaving(true);
+      const res = await fetch(`/api/reports/${encodeURIComponent(editReportId)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ analysis }),
+      });
+      if (!res.ok) throw new Error("No se pudo guardar el reporte");
+      toast.success("Reporte actualizado exitosamente");
+      setEditModalOpen(false);
+      await loadReports();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error desconocido al guardar");
+    } finally {
+      setEditModalSaving(false);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 overflow-x-hidden">
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
+      <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 overflow-x-hidden">
+        <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Reportes guardados</h1>
         <div className="flex items-center gap-3">
-          <button
-            onClick={loadReports}
-            className="px-3 py-2 text-sm font-medium rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50"
-          >
-            Actualizar
-          </button>
+          
         </div>
       </div>
 
@@ -205,7 +278,7 @@ export default function ReportesPage() {
           {reports!.map((r) => (
             <div
               key={r.filename}
-              className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 overflow-hidden"
+              className="bg-white rounded-lg shadow p-5 flex flex-col gap-3 overflow-hidden hover:shadow-xl transition-shadow duration-300"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -237,19 +310,19 @@ export default function ReportesPage() {
               <div className="mt-2 flex items-center gap-2">
                 <button
                   onClick={() => handleViewReport(r.filename)}
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-500"
+                  className="px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200"
                 >
                   Ver reporte
                 </button>
-                <a
-                  href={`/reportes/${encodeURIComponent(r.filename)}`}
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                <button
+                  onClick={() => handleEditReport(r.filename)}
+                  className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200"
                 >
                   Editar
-                </a>
+                </button>
                 <button
                   onClick={() => handleDeleteReport(r.filename)}
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-500"
+                  className="px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors duration-200"
                 >
                   Eliminar
                 </button>
@@ -259,11 +332,20 @@ export default function ReportesPage() {
         </div>
       )}
 
-      <AnalysisModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        analysis={modalAnalysis ?? { summary: "", keyPoints: [], decisions: [], tasks: [] }}
-      />
+        <AnalysisModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          analysis={modalAnalysis ?? { summary: "", keyPoints: [], decisions: [], tasks: [] }}
+        />
+        <ReportEditModal
+          isOpen={editModalOpen}
+          loading={editModalLoading}
+          saving={editModalSaving}
+          initialAnalysis={editModalAnalysis}
+          onClose={() => setEditModalOpen(false)}
+          onSave={handleSaveReportEdits}
+        />
+      </div>
     </div>
   );
 }

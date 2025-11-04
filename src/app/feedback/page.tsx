@@ -1,8 +1,9 @@
-
 'use client';
 
 import { useState } from 'react';
 import { FaStar, FaPaperPlane } from 'react-icons/fa';
+import { toast } from 'sonner';
+import { useAuth } from '@/lib/useAuth';
 
 export default function FeedbackPage() {
   const [rating, setRating] = useState(0);
@@ -10,23 +11,43 @@ export default function FeedbackPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const { getToken } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) {
-      alert('Por favor califica tu experiencia');
+      toast.error('Por favor califica tu experiencia');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      // Aquí podrías enviar el feedback a tu backend
-      console.log({ rating, comment });
-      // Simulamos un envío
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const token = await getToken();
+      if (!token) {
+        toast.info('Inicia sesión para enviar feedback');
+        return;
+      }
+
+      // Enviar feedback al backend
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating, comment }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al enviar el feedback');
+      }
+
+      toast.success('¡Gracias por tu feedback!');
       setIsSubmitted(true);
     } catch (error) {
       console.error('Error al enviar el feedback:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al enviar el feedback');
     } finally {
       setIsSubmitting(false);
     }
@@ -34,7 +55,7 @@ export default function FeedbackPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div className="bg-white p-8 rounded-lg shadow-md">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
@@ -55,7 +76,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl mt-32 font-extrabold text-gray-900">Envíanos tu Feedback</h1>
@@ -64,7 +85,7 @@ export default function FeedbackPage() {
           </p>
         </div>
 
-        <div className="bg-white py-8 px-6 shadow rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-6 shadow-lg rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -109,7 +130,7 @@ export default function FeedbackPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 cursor-pointer"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {isSubmitting ? (
                   'Enviando...'

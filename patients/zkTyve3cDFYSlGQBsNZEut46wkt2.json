@@ -1,0 +1,38 @@
+[
+  {
+    "nombre": "sadfadlksjda",
+    "edad": 12342,
+    "telefono": "kflsdjfksfjsf",
+    "email": "fsdklfjsklfd",
+    "notas": "fksdjklsjfkdlsfjkl",
+    "userId": "zkTyve3cDFYSlGQBsNZEut46wkt2",
+    "createdAt": "2025-10-05T00:23:56.657Z",
+    "id": "41356401-8cde-4d0b-8c12-422d7646f932"
+  },
+  {
+    "nombre": "dsff",
+    "edad": 2342,
+    "telefono": "fdsfdsgdg",
+    "email": "fsfsfd1f|",
+    "notas": "vsdvssd",
+    "userId": "zkTyve3cDFYSlGQBsNZEut46wkt2",
+    "createdAt": "2025-10-05T00:20:12.966Z",
+    "id": "0478cebd-3647-49fe-bd57-7e4d100e49eb"
+  },
+  {
+    "nombre": "Martín Ramírez",
+    "edad": 32,
+    "telefono": "+56959263910",
+    "email": "martin@gmail.com",
+    "notas": "alérgico a la penicilina",
+    "userId": "zkTyve3cDFYSlGQBsNZEut46wkt2",
+    "createdAt": "2025-10-05T00:08:20.069Z",
+    "id": "5b673143-e472-4298-9dec-ff6bb2064380"
+  },
+  {
+    "nombre": "juan",
+    "userId": "zkTyve3cDFYSlGQBsNZEut46wkt2",
+    "createdAt": "2025-10-05T00:06:35.582Z",
+    "id": "accf6a49-2faf-4a2e-ba83-3516d0c27c08"
+  }
+]

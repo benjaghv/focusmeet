@@ -344,18 +344,11 @@ export async function analyzeTranscription(
         messages: [
           {
             role: 'system',
-            content: 'Eres un asistente experto en análisis de reuniones. Genera informes claros y profesionales en formato JSON válido.'
+            content: 'Eres un asistente médico encargado de generar reportes clínicos siguiendo el formato SOAP. Analiza la transcripción de la consulta y produce un objeto JSON válido que incluya únicamente la información confirmada en la conversación, redactada en español profesional, conciso y claro. Si algún campo no se menciona explícitamente, devuélvelo como null en lugar de inventarlo.'
           },
           { 
             role: 'user', 
-            content: `Analiza la siguiente transcripción de una reunión y genera un informe estructurado en formato JSON válido. La respuesta DEBE ser un objeto JSON válido con los siguientes campos:
-              - shortSummary: Resumen corto de la reunión
-              - detailedSummary: Resumen detallado
-              - keyPoints: Array de puntos clave
-              - decisions: Array de decisiones tomadas
-              - tasks: Array de tareas con descripción y responsable
-              - sentiment: Análisis de sentimiento (positivo/neutral/negativo)
-              
+            content: `
               Transcripción: ${transcription.text}`
           }
         ],

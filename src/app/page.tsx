@@ -211,8 +211,8 @@ export default function Home() {
             FocusMeet
           </h1>
           <p className="text-xl text-gray-600 mb-12">
-            Analiza tus reuniones de Meet o Zoom de forma inteligente. <br />
-            Sube tu grabación y obtén insights clave en segundos.
+          Analiza tus sesiones médicas de forma inteligente.<br />
+          Sube tu grabación y genera reportes clínicos estructurados para seguir la evolución de tus pacientes.
           </p>
 
           <div className="relative group">

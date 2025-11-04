@@ -3,24 +3,36 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   FaHome, 
   FaChartBar, 
   FaUser, 
-  FaTags, 
   FaCommentDots,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaSignOutAlt
 } from "react-icons/fa";
 import { useAuth } from "@/lib/useAuth";
 import { signOut } from "firebase/auth";
 import { getClientAuth } from "@/lib/firebaseClient";
+import { toast } from "sonner";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(getClientAuth());
+      toast.success("Sesión cerrada exitosamente");
+      router.push("/");
+    } catch {
+      toast.error("Error al cerrar sesión");
+    }
+  };
 
   // Cerrar el menú cuando cambia la ruta
   useEffect(() => {
@@ -89,9 +101,9 @@ export default function Navbar() {
               <NavLink href="/pacientes">
                 <FaUser className="mr-1" /> Pacientes
               </NavLink>
-              <NavLink href="/precios">
+              {/*<NavLink href="/precios">
                 <FaTags className="mr-1" /> Precios
-              </NavLink>
+              </NavLink>*/}
               <NavLink href="/feedback">
                 <FaCommentDots className="mr-1" /> Feedback
               </NavLink>
@@ -110,10 +122,10 @@ export default function Navbar() {
                     </span>
                     <button
                       title="Cerrar sesión"
-                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50"
-                      onClick={async () => { await signOut(getClientAuth()); }}
+                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-red-50 hover:text-red-600 hover:ring-red-300 transition-colors duration-200 flex items-center gap-1"
+                      onClick={handleSignOut}
                     >
-                      Salir
+                      <FaSignOutAlt /> Salir
                     </button>
                   </>
                 )}
@@ -148,9 +160,9 @@ export default function Navbar() {
             <NavLink href="/pacientes">
               <FaUser className="mr-2" /> Pacientes
             </NavLink>
-            <NavLink href="/precios">
+            {/*<NavLink href="/precios">
               <FaTags className="mr-2" /> Precios
-            </NavLink>
+            </NavLink>*/}
             <NavLink href="/feedback">
               <FaCommentDots className="mr-2" /> Feedback
             </NavLink>
@@ -162,12 +174,17 @@ export default function Navbar() {
                 <Link href="/register" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500">Crear cuenta</Link>
               </div>
             ) : (
-              <div className="mt-2 flex items-center gap-2">
-                <span className="text-sm text-gray-700 truncate">{user.displayName || user.email}</span>
+              <div className="mt-2 space-y-2">
+                <div className="px-3 py-2 bg-indigo-50 rounded-md">
+                  <p className="text-xs text-gray-500">Conectado como:</p>
+                  <p className="text-sm text-gray-900 font-medium truncate">{user.displayName || user.email}</p>
+                </div>
                 <button
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50"
-                  onClick={async () => { await signOut(getClientAuth()); setIsMenuOpen(false); }}
-                >Salir</button>
+                  className="w-full px-3 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors duration-200 flex items-center justify-center gap-2"
+                  onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
+                >
+                  <FaSignOutAlt /> Cerrar Sesión
+                </button>
               </div>
             )}
           </div>

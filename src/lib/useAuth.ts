@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getClientAuth } from './firebaseClient';
 import { onAuthStateChanged, User, getIdToken } from 'firebase/auth';
 
@@ -17,14 +17,14 @@ export function useAuth() {
     return () => unsub();
   }, []);
 
-  async function getToken(): Promise<string | null> {
+  const getToken = useCallback(async (): Promise<string | null> => {
     if (!user) return null;
     try {
-      return await getIdToken(user, true);
+      return await getIdToken(user);
     } catch {
       return null;
     }
-  }
+  }, [user]);
 
   return { user, loading, getToken };
 }
