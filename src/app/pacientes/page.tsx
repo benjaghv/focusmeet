@@ -218,10 +218,9 @@ export default function PacientesPage() {
         <h1 className="text-3xl font-bold text-gray-900">Mis Pacientes</h1>
         <button
           onClick={() => handleOpenModal()}
-          className="p-2.5 rounded-lg bg-[#0003FF] text-white hover:bg-[#00033D] transition-all duration-200 shadow-sm hover:shadow-md"
-          title="Nuevo Paciente"
+          className="px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-all duration-200 border border-gray-300 text-sm font-medium"
         >
-          <FaPlus className="w-5 h-5" />
+          Nuevo Paciente
         </button>
       </div>
 
@@ -268,10 +267,9 @@ export default function PacientesPage() {
           <p className="mt-1 text-gray-500">Comienza agregando tu primer paciente.</p>
           <button
             onClick={() => handleOpenModal()}
-            className="mt-4 p-2.5 rounded-lg bg-[#0003FF] text-white hover:bg-[#00033D] transition-all duration-200 shadow-sm hover:shadow-md inline-flex items-center gap-2"
-            title="Nuevo Paciente"
+            className="mt-4 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-all duration-200 border border-gray-300 text-sm font-medium"
           >
-            <FaPlus className="w-5 h-5" />
+            Nuevo Paciente
           </button>
         </div>
       )}
@@ -313,7 +311,7 @@ export default function PacientesPage() {
               <div className="mt-3 flex items-center gap-1">
                 <button
                   onClick={() => setViewingPatient(p)}
-                  className="p-2 text-gray-600 hover:text-[#0003FF] hover:bg-[#0003FF]/10 rounded-lg transition-all duration-200"
+                  className="p-2 text-gray-600 hover:text-[#0033FF] hover:bg-[#0033FF]/10 rounded-lg transition-all duration-200"
                   title="Ver ficha completa"
                 >
                   <FaEye className="w-5 h-5" />

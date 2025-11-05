@@ -61,7 +61,7 @@ export default function Navbar() {
     <Link
       href={href}
       className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${
-        pathname === href ? 'text-[#0003FF]' : 'text-gray-700 hover:text-[#0003FF]'
+        pathname === href ? 'text-[#0033FF]' : 'text-gray-700 hover:text-[#0033FF]'
       }`}
     >
       {children}
@@ -76,7 +76,7 @@ export default function Navbar() {
             <div className="flex-shrink-0">
               <Link 
                 href="/" 
-                className="flex items-center gap-2 hidden md:flex"
+                className="flex items-end gap-2 hidden md:flex"
               >
                 <Image 
                   src="/logoClinio.png" 
@@ -86,22 +86,22 @@ export default function Navbar() {
                   className="h-8 w-auto"
                   priority
                 />
-                <span className="text-[10px] font-semibold text-[#9717FF] bg-[#9717FF]/10 px-2 py-0.5 rounded-full">BETA</span>
+                <span className="text-sm font-bold text-[#00033D] pb-0.5">v0</span>
               </Link>
               <Link 
                 href="/" 
-                className="flex items-center gap-1.5 md:hidden"
+                className="flex items-end gap-1.5 md:hidden"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Image 
-                  src="/clinio-logo.png" 
+                  src="/logoClinio.png" 
                   alt="Clinio" 
                   width={100} 
                   height={32}
                   className="h-7 w-auto"
                   priority
                 />
-                <span className="text-[9px] font-semibold text-[#9717FF] bg-[#9717FF]/10 px-1.5 py-0.5 rounded-full">BETA</span>
+                <span className="text-xs font-bold text-[#00033D] pb-0.5">v0</span>
               </Link>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function Navbar() {
                 {!user ? (
                   <>
                     <Link href="/login" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">Iniciar sesión</Link>
-                    <Link href="/register" className="px-3 py-2 rounded-md text-sm font-medium text-white bg-[#0003FF] hover:bg-[#00033D]">Crear cuenta</Link>
+                    <Link href="/register" className="px-3 py-2 rounded-md text-sm font-medium text-white bg-[#0033FF] hover:bg-[#00033D]">Crear cuenta</Link>
                   </>
                 ) : (
                   <>
@@ -154,7 +154,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={toggleMenu}
-              className="menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#0003FF] focus:outline-none"
+              className="menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#0033FF] focus:outline-none"
               aria-label="Menú"
               aria-expanded={isMenuOpen}
             >

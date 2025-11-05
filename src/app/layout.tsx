@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Clinio - BETA",
+  title: "Clinio - v0",
   description: "Sistema de análisis médico con IA para transcripción y generación de reportes clínicos",
 };
 
