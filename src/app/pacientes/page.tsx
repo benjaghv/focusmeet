@@ -3,8 +3,8 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/useAuth";
 import { toast } from "sonner";
-import { FaUser, FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
+import { FaUser, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import FirestoreStatus from "../components/FirestoreStatus";
 import PatientDetailsModal from "../components/PatientDetailsModal";
 import type { Patient } from "@/types/patient";

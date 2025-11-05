@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 import { useRef, useState, useEffect, Suspense } from 'react';
+import Image from 'next/image';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import Navbar from './components/Navbar';
 import AnalysisModal from './components/AnalysisModal';
@@ -280,10 +281,13 @@ export default function Home() {
             </div>
           )}
           <div className="flex items-end justify-center gap-2 mb-6 px-2">
-            <img 
+            <Image 
               src="/logoClinio.png" 
               alt="Clinio" 
+              width={200}
+              height={67}
               className="h-16 sm:h-20 w-auto"
+              priority
             />
             <span className="text-base sm:text-lg font-bold text-[#00033D] pb-1 sm:pb-1.5">v0</span>
           </div>
