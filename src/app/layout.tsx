@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FocusMeet",
-  description: "AI Tool for Meeting Summaries",
+  title: "Clinio - BETA",
+  description: "Sistema de análisis médico con IA para transcripción y generación de reportes clínicos",
 };
 
 export default function RootLayout({

@@ -3,6 +3,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Clinio Color Palette */
+  --clinio-navy: #00033D;
+  --clinio-blue: #0003FF;
+  --clinio-purple: #9717FF;
+  --clinio-gray: #AEAECB;
+  --clinio-black: #000812;
+  --clinio-white: #FFFFFF;
 }
 
 @theme inline {
@@ -10,6 +17,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-clinio-navy: var(--clinio-navy);
+  --color-clinio-blue: var(--clinio-blue);
+  --color-clinio-purple: var(--clinio-purple);
+  --color-clinio-gray: var(--clinio-gray);
 }
 
 @media (prefers-color-scheme: dark) {

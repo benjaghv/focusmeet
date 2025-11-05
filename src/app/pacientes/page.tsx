@@ -216,15 +216,13 @@ export default function PacientesPage() {
         
         <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Mis Pacientes</h1>
-        <div className="flex items-center gap-3">
-          
-          <button
-            onClick={() => handleOpenModal()}
-            className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-2 transition-colors duration-200"
-          >
-            <FaPlus /> Nuevo Paciente
-          </button>
-        </div>
+        <button
+          onClick={() => handleOpenModal()}
+          className="p-2.5 rounded-lg bg-[#0003FF] text-white hover:bg-[#00033D] transition-all duration-200 shadow-sm hover:shadow-md"
+          title="Nuevo Paciente"
+        >
+          <FaPlus className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Si no hay sesión */}
@@ -270,9 +268,10 @@ export default function PacientesPage() {
           <p className="mt-1 text-gray-500">Comienza agregando tu primer paciente.</p>
           <button
             onClick={() => handleOpenModal()}
-            className="mt-4 px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-medium inline-flex items-center gap-2 transition-colors duration-200"
+            className="mt-4 p-2.5 rounded-lg bg-[#0003FF] text-white hover:bg-[#00033D] transition-all duration-200 shadow-sm hover:shadow-md inline-flex items-center gap-2"
+            title="Nuevo Paciente"
           >
-            <FaPlus /> Nuevo Paciente
+            <FaPlus className="w-5 h-5" />
           </button>
         </div>
       )}
@@ -311,26 +310,27 @@ export default function PacientesPage() {
                 Creado: {formatDate(p.createdAt)}
               </p>
 
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-3 flex items-center gap-1">
                 <button
                   onClick={() => setViewingPatient(p)}
-                  className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center gap-1 transition-colors duration-200"
+                  className="p-2 text-gray-600 hover:text-[#0003FF] hover:bg-[#0003FF]/10 rounded-lg transition-all duration-200"
+                  title="Ver ficha completa"
                 >
-                  <FaEye /> Ver Ficha
+                  <FaEye className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleOpenModal(p)}
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200"
-                  title="Editar"
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                  title="Editar paciente"
                 >
-                  <FaEdit />
+                  <FaEdit className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleDeletePatient(p)}
-                  className="px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors duration-200"
-                  title="Eliminar"
+                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                  title="Eliminar paciente"
                 >
-                  <FaTrash />
+                  <FaTrash className="w-5 h-5" />
                 </button>
               </div>
             </div>

@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { 
   FaHome, 
@@ -60,7 +61,7 @@ export default function Navbar() {
     <Link
       href={href}
       className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${
-        pathname === href ? 'text-indigo-600' : 'text-gray-700 hover:text-indigo-600'
+        pathname === href ? 'text-[#0003FF]' : 'text-gray-700 hover:text-[#0003FF]'
       }`}
     >
       {children}
@@ -75,16 +76,32 @@ export default function Navbar() {
             <div className="flex-shrink-0">
               <Link 
                 href="/" 
-                className="text-xl font-bold text-[#22223b] hidden md:block"
+                className="flex items-center gap-2 hidden md:flex"
               >
-                FocusMeet
+                <Image 
+                  src="/logoClinio.png" 
+                  alt="Clinio" 
+                  width={120} 
+                  height={40}
+                  className="h-8 w-auto"
+                  priority
+                />
+                <span className="text-[10px] font-semibold text-[#9717FF] bg-[#9717FF]/10 px-2 py-0.5 rounded-full">BETA</span>
               </Link>
               <Link 
                 href="/" 
-                className="text-xl font-bold text-[#22223b] md:hidden"
+                className="flex items-center gap-1.5 md:hidden"
                 onClick={() => setIsMenuOpen(false)}
               >
-                FocusMeet
+                <Image 
+                  src="/clinio-logo.png" 
+                  alt="Clinio" 
+                  width={100} 
+                  height={32}
+                  className="h-7 w-auto"
+                  priority
+                />
+                <span className="text-[9px] font-semibold text-[#9717FF] bg-[#9717FF]/10 px-1.5 py-0.5 rounded-full">BETA</span>
               </Link>
             </div>
           </div>
@@ -113,7 +130,7 @@ export default function Navbar() {
                 {!user ? (
                   <>
                     <Link href="/login" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">Iniciar sesión</Link>
-                    <Link href="/register" className="px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500">Crear cuenta</Link>
+                    <Link href="/register" className="px-3 py-2 rounded-md text-sm font-medium text-white bg-[#0003FF] hover:bg-[#00033D]">Crear cuenta</Link>
                   </>
                 ) : (
                   <>
@@ -137,7 +154,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={toggleMenu}
-              className="menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-indigo-600 focus:outline-none"
+              className="menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#0003FF] focus:outline-none"
               aria-label="Menú"
               aria-expanded={isMenuOpen}
             >
@@ -171,11 +188,11 @@ export default function Navbar() {
             {!user ? (
               <div className="mt-2 flex items-center gap-2">
                 <Link href="/login" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50">Iniciar sesión</Link>
-                <Link href="/register" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500">Crear cuenta</Link>
+                <Link href="/register" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-medium text-white bg-[#0003FF] hover:bg-[#00033D]">Crear cuenta</Link>
               </div>
             ) : (
               <div className="mt-2 space-y-2">
-                <div className="px-3 py-2 bg-indigo-50 rounded-md">
+                <div className="px-3 py-2 bg-[#9717FF]/10 rounded-md">
                   <p className="text-xs text-gray-500">Conectado como:</p>
                   <p className="text-sm text-gray-900 font-medium truncate">{user.displayName || user.email}</p>
                 </div>

@@ -279,9 +279,12 @@ export default function Home() {
               </p>
             </div>
           )}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 px-2">
-            FocusMeet
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-4 px-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#00033D]">
+              Clinio
+            </h1>
+            <span className="text-xs sm:text-sm font-semibold text-[#9717FF] bg-[#9717FF]/10 px-3 py-1 rounded-full">BETA</span>
+          </div>
           <p className="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto px-4">
           Analiza tus sesiones médicas de forma inteligente.<br />
           Sube tu grabación y genera reportes clínicos estructurados para seguir la evolución de tus pacientes.
@@ -296,7 +299,7 @@ export default function Home() {
                 disabled={isAnalyzing}
                 className={`px-4 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex-1 ${
                   analysisFormat === 'soap'
-                    ? 'bg-indigo-600 text-white shadow-sm'
+                    ? 'bg-[#0003FF] text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 } ${isAnalyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
@@ -307,7 +310,7 @@ export default function Home() {
                 disabled={isAnalyzing}
                 className={`px-4 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex-1 ${
                   analysisFormat === 'hpi_ros'
-                    ? 'bg-indigo-600 text-white shadow-sm'
+                    ? 'bg-[#0003FF] text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 } ${isAnalyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
@@ -384,9 +387,9 @@ export default function Home() {
               <button
                 onClick={handleButtonClick}
                 disabled={isAnalyzing || !selectedPatientId}
-                className={`w-full cursor-pointer px-4 sm:px-8 py-3 sm:py-4 bg-indigo-600 text-white rounded-lg text-sm sm:text-lg font-semibold shadow-lg transform transition-all duration-300 ${isAnalyzing || !selectedPatientId
+                className={`w-full cursor-pointer px-4 sm:px-8 py-3 sm:py-4 bg-[#0003FF] text-white rounded-lg text-sm sm:text-lg font-semibold shadow-lg transform transition-all duration-300 ${isAnalyzing || !selectedPatientId
                     ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:scale-[1.02] hover:bg-indigo-700 active:scale-[0.98]'
+                    : 'hover:scale-[1.02] hover:bg-[#00033D] active:scale-[0.98]'
                   }`}
               >
                 <div className="flex items-center justify-center gap-2 sm:gap-3">
