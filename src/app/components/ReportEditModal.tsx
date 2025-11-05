@@ -23,34 +23,12 @@ interface ReportEditModalProps {
 }
 
 const listToTextarea = (values?: string[]) => (values && values.length ? values.join("\n") : "");
-const tasksToTextarea = (tasks?: ReportTask[]) =>
-  tasks && tasks.length
-    ? tasks
-        .map((task) => `${task.description || ""}${task.responsible ? ` | ${task.responsible}` : ""}`.trim())
-        .join("\n")
-    : "";
 
 const textareaToList = (value: string) =>
   value
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-
-const textareaToTasks = (value: string): ReportTask[] =>
-  value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [descriptionRaw, responsibleRaw] = line.split("|");
-      const description = (descriptionRaw || "").trim();
-      const responsible = (responsibleRaw || "").trim();
-      return {
-        description,
-        responsible,
-      };
-    })
-    .filter((task) => task.description.length > 0 || task.responsible.length > 0);
 
 export default function ReportEditModal({
   isOpen,
@@ -64,7 +42,6 @@ export default function ReportEditModal({
   const [detailedSummary, setDetailedSummary] = useState("");
   const [keyPoints, setKeyPoints] = useState("");
   const [decisions, setDecisions] = useState("");
-  const [tasks, setTasks] = useState("");
 
   const isDisabled = saving || loading;
 
@@ -76,7 +53,6 @@ export default function ReportEditModal({
     setDetailedSummary(safeInitial.detailedSummary || "");
     setKeyPoints(listToTextarea(safeInitial.keyPoints));
     setDecisions(listToTextarea(safeInitial.decisions));
-    setTasks(tasksToTextarea(safeInitial.tasks));
   }, [isOpen, safeInitial]);
 
   const handleSave = async () => {
@@ -85,7 +61,6 @@ export default function ReportEditModal({
       detailedSummary: detailedSummary.trim(),
       keyPoints: textareaToList(keyPoints),
       decisions: textareaToList(decisions),
-      tasks: textareaToTasks(tasks),
     };
     await onSave(analysis);
   };
@@ -194,18 +169,6 @@ export default function ReportEditModal({
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Tareas (una por línea: descripción | responsable)
-                          </label>
-                          <textarea
-                            value={tasks}
-                            onChange={(e) => setTasks(e.target.value)}
-                            rows={6}
-                            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            disabled={isDisabled}
-                          />
-                        </div>
                       </div>
                     )}
                   </div>

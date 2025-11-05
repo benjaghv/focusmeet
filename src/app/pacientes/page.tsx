@@ -1,17 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/useAuth";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FaUser, FaPlus, FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { Dialog, Transition } from "@headlessui/react";
 import FirestoreStatus from "../components/FirestoreStatus";
 import PatientDetailsModal from "../components/PatientDetailsModal";
 import type { Patient } from "@/types/patient";
 
 export default function PacientesPage() {
   const { user, loading: authLoading, getToken } = useAuth();
-  const router = useRouter();
   const [patients, setPatients] = useState<Patient[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -340,13 +339,36 @@ export default function PacientesPage() {
       )}
 
       {/* Modal para crear/editar paciente */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {editingPatient ? "Editar Paciente" : "Nuevo Paciente"}
-              </h2>
+      <Transition.Root show={showModal} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={handleCloseModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+                  <div>
+                    <Dialog.Title as="h2" className="text-2xl font-bold text-gray-900 mb-6">
+                      {editingPatient ? "Editar Paciente" : "Nuevo Paciente"}
+                    </Dialog.Title>
 
               <div className="space-y-4">
                 <div>
@@ -442,26 +464,22 @@ export default function PacientesPage() {
                 >
                   Cancelar
                 </button>
-              </div>
+                    </div>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
             </div>
           </div>
-        </div>
-      )}
+        </Dialog>
+      </Transition.Root>
 
       <PatientDetailsModal
         patient={viewingPatient}
         isOpen={!!viewingPatient}
         onClose={() => setViewingPatient(null)}
-        onEdit={(patient) => {
-          setViewingPatient(null);
-          handleOpenModal(patient);
-        }}
+        onEdit={handleOpenModal}
         onDelete={handleDeletePatient}
         deletingId={deletingPatientId}
-        onCreateReport={(patient) => {
-          setViewingPatient(null);
-          router.push(`/?patientId=${patient.id}`);
-        }}
       />
     </div>
     </div> 

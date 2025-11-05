@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ['*'], // Permite todos los orígenes en desarrollo
+      bodySizeLimit: '100mb', // Aumentar límite de tamaño de body
     },
   },
   

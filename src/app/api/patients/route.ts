@@ -137,8 +137,16 @@ export async function GET(request: Request) {
         const patients = snap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }));
+        })) as StoredPatient[];
 
+        // Ordenar por fecha de creación en JavaScript (más recientes primero)
+        patients.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA;
+        });
+
+        console.log(`Pacientes encontrados para ${uid}:`, patients.length);
         return NextResponse.json(patients);
       } catch (error) {
         console.error('Error al listar pacientes desde Firestore:', error);

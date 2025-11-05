@@ -36,7 +36,7 @@ function PatientParams({ onLoad }: { onLoad: (pid: string) => void }) {
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { user, loading: authLoading, getToken } = useAuth();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -45,6 +45,47 @@ export default function Home() {
   const [savingReport, setSavingReport] = useState(false);
   const [patientId, setPatientId] = useState<string | null>(null);
   const [patientName, setPatientName] = useState<string | null>(null);
+  const [analysisFormat, setAnalysisFormat] = useState<'hpi_ros' | 'soap'>('soap');
+  const [patients, setPatients] = useState<Array<{id: string; nombre: string}>>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+  const [loadingPatients, setLoadingPatients] = useState(false);
+
+  const loadPatients = async () => {
+    try {
+      setLoadingPatients(true);
+      const token = await getToken();
+      if (!token) {
+        console.log('No token, skipping patient load');
+        setPatients([]);
+        return;
+      }
+      console.log('Solicitando pacientes...');
+      const res = await fetch('/api/patients', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Respuesta de pacientes:', res.status);
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Datos recibidos:', data);
+        console.log('Tipo de datos:', Array.isArray(data) ? 'Array' : typeof data);
+        if (Array.isArray(data)) {
+          console.log('Primer paciente:', data[0]);
+          setPatients(data);
+          console.log('Pacientes cargados en estado:', data.length);
+        } else {
+          console.error('Los datos no son un array:', data);
+          setPatients([]);
+        }
+      } else {
+        const errorText = await res.text();
+        console.error('Error al cargar pacientes:', res.status, errorText);
+      }
+    } catch (e) {
+      console.error('Error loading patients:', e);
+    } finally {
+      setLoadingPatients(false);
+    }
+  };
 
   const loadPatientName = async (pid: string) => {
     try {
@@ -56,11 +97,36 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setPatientName(data.nombre);
+        setSelectedPatientId(pid);
       }
     } catch (e) {
       console.error('Error loading patient:', e);
     }
   };
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadPatients();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user]);
+
+  // Recargar pacientes cuando la ventana vuelve a tener foco
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Window focused, reloading patients');
+      loadPatients();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debug: Mostrar cuando cambia el estado de pacientes
+  useEffect(() => {
+    console.log('Estado de pacientes actualizado:', patients);
+    console.log('Cantidad de pacientes en estado:', patients.length);
+  }, [patients]);
 
   const updateProgress = (value: number, status: string) => {
     setProgress(value);
@@ -75,12 +141,20 @@ export default function Home() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validar que haya un paciente seleccionado
+    if (!selectedPatientId) {
+      toast.error("Debes seleccionar un paciente antes de analizar");
+      e.target.value = ''; // Limpiar el input
+      return;
+    }
+
     if (!file.type.startsWith('audio/') && !file.type.startsWith('video/')) {
       toast.error("Por favor, sube un archivo de audio (.mp3) o video (.mp4)");
       return;
     }
 
     setIsAnalyzing(true);
+    setPatientId(selectedPatientId); // Asignar el paciente seleccionado
     updateProgress(10, 'Subiendo archivo...');
 
     try {
@@ -103,7 +177,7 @@ export default function Home() {
       updateProgress(60, 'Procesando transcripción...');
 
       // 2. Analizar la transcripción
-      updateProgress(70, 'Analizando contenido...');
+      updateProgress(70, `Analizando contenido (formato ${analysisFormat.toUpperCase()})...`);
       const analysisResponse = await fetch('/api/chat/analyze', {
         method: 'POST',
         headers: {
@@ -111,7 +185,8 @@ export default function Home() {
         },
         body: JSON.stringify({
           text: transcription.text,
-          model: 'llama-3.3-70b-versatile'
+          model: 'llama-3.3-70b-versatile',
+          format: analysisFormat
         })
       });
 
@@ -163,7 +238,8 @@ export default function Home() {
             source: 'FocusMeet',
             savedAt: new Date().toISOString(),
           },
-          ...(patientId ? { patientId } : {}),
+          patientId: selectedPatientId || patientId,
+          format: analysisFormat,
         }),
       });
       if (!res.ok) {
@@ -172,12 +248,8 @@ export default function Home() {
       }
       const data = await res.json();
       toast.success(`Reporte guardado: ${data.filename}`);
-      // Si hay paciente, volver a su ficha; sino, ir a reportes
-      if (patientId) {
-        router.push(`/pacientes/${patientId}`);
-      } else {
-        router.push('/reportes');
-      }
+      // Siempre ir a reportes, no a la ficha del paciente
+      router.push('/reportes');
     } catch (e) {
       console.error('Error guardando reporte:', e);
       toast.error(e instanceof Error ? e.message : 'Error desconocido al guardar el reporte');
@@ -198,8 +270,8 @@ export default function Home() {
           }}
         />
       </Suspense>
-      <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
-        <div className="text-center max-w-2xl mx-auto">
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="text-center max-w-4xl mx-auto w-full">
           {patientName && (
             <div className="mb-6 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-lg">
               <p className="text-sm text-indigo-800">
@@ -207,39 +279,134 @@ export default function Home() {
               </p>
             </div>
           )}
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
             FocusMeet
           </h1>
-          <p className="text-xl text-gray-600 mb-12">
+          <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
           Analiza tus sesiones médicas de forma inteligente.<br />
           Sube tu grabación y genera reportes clínicos estructurados para seguir la evolución de tus pacientes.
           </p>
 
-          <div className="relative group">
-            <button
-              onClick={handleButtonClick}
-              disabled={isAnalyzing}
-              className={`cursor-pointer px-8 py-4 bg-indigo-900 text-white rounded-full text-lg font-semibold shadow-lg transform transition-all duration-300 ${isAnalyzing
-                  ? 'opacity-70 cursor-not-allowed'
-                  : 'hover:scale-105 hover:bg-indigo-800 active:scale-95'
-                }`}
-            >
-              <div className="flex items-center gap-3">
-                <FaCloudUploadAlt className="text-2xl group-hover:animate-bounce" />
-                {isAnalyzing ? 'Analizando...' : 'Subir archivo (.mp3 o .mp4)'}
-              </div>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".mp3,.mp4"
-              className="hidden"
-              onChange={handleFileChange}
-              disabled={isAnalyzing}
-            />
+          {/* Tarjeta: Selector de formato */}
+          <div className="mb-6 bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4 text-left">1. Selecciona el formato de análisis</h3>
+            <div className="flex bg-gray-50 rounded-lg p-1 border border-gray-200">
+              <button
+                onClick={() => setAnalysisFormat('soap')}
+                disabled={isAnalyzing}
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  analysisFormat === 'soap'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                } ${isAnalyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                SOAP (Médico)
+              </button>
+              <button
+                onClick={() => setAnalysisFormat('hpi_ros')}
+                disabled={isAnalyzing}
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  analysisFormat === 'hpi_ros'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                } ${isAnalyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                HPI/ROS + PE + A/P
+              </button>
+            </div>
+
+            {/* Descripción del formato seleccionado */}
+            <div className="mt-4 px-4 py-3 bg-indigo-50 rounded-lg border border-indigo-100">
+              {analysisFormat === 'soap' ? (
+                <p className="text-sm text-gray-700 text-left">
+                  <span className="font-semibold text-indigo-700">✓ Formato SOAP:</span> Subjetivo, Objetivo, Análisis y Plan. Ideal para consultas de seguimiento.
+                </p>
+              ) : (
+                <p className="text-sm text-gray-700 text-left">
+                  <span className="font-semibold text-indigo-700">✓ Formato HPI/ROS + PE + A/P:</span> Historia detallada, Revisión por Sistemas, Examen Físico y Plan. Ideal para consultas iniciales o exploraciones complejas.
+                </p>
+              )}
+            </div>
           </div>
-          <div className="mt-8">
-            {/* Barra de progreso */}
+
+          {/* Tarjeta: Selector de Paciente */}
+          <div className="mb-6 bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4 text-left">
+              2. Selecciona el paciente <span className="text-red-500">*</span>
+              {patients.length > 0 && <span className="text-xs text-gray-500 ml-2">({patients.length} disponibles)</span>}
+            </h3>
+            {!authLoading && !user && (
+              <div className="mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  🔐 <strong>Inicia sesión</strong> para ver y seleccionar tus pacientes
+                </p>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <select
+                value={selectedPatientId}
+                onChange={(e) => setSelectedPatientId(e.target.value)}
+                disabled={isAnalyzing || loadingPatients}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {loadingPatients ? 'Cargando pacientes...' : patients.length === 0 ? 'No hay pacientes (crea uno primero)' : 'Selecciona un paciente'}
+                </option>
+                {patients.map((patient) => (
+                  <option key={patient.id} value={patient.id}>
+                    {patient.nombre}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => router.push('/pacientes')}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 text-sm font-medium"
+              >
+                + Nuevo Paciente
+              </button>
+            </div>
+            {!selectedPatientId && (
+              <p className="mt-3 text-xs text-gray-500 text-left bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+                ⚠️ Debes seleccionar un paciente para poder analizar la sesión
+              </p>
+            )}
+            {loadingPatients && (
+              <p className="mt-3 text-xs text-gray-500 text-left">
+                Cargando pacientes...
+              </p>
+            )}
+          </div>
+
+          {/* Tarjeta: Botón de subir */}
+          <div className="mb-6 bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4 text-left">3. Sube tu archivo de audio o video</h3>
+            <div className="relative group">
+              <button
+                onClick={handleButtonClick}
+                disabled={isAnalyzing || !selectedPatientId}
+                className={`w-full cursor-pointer px-8 py-4 bg-indigo-600 text-white rounded-lg text-lg font-semibold shadow-lg transform transition-all duration-300 ${isAnalyzing || !selectedPatientId
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:scale-[1.02] hover:bg-indigo-700 active:scale-[0.98]'
+                  }`}
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <FaCloudUploadAlt className="text-2xl" />
+                  {isAnalyzing ? 'Analizando...' : 'Subir archivo (.mp3 o .mp4)'}
+                </div>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".mp3,.mp4"
+                className="hidden"
+                onChange={handleFileChange}
+                disabled={isAnalyzing}
+              />
+            </div>
+          </div>
+
+          {/* Barra de progreso */}
+          <div className="mt-6 max-w-2xl mx-auto">
             <ProgressBar
               progress={progress}
               status={progressStatus}
@@ -253,6 +420,7 @@ export default function Home() {
         onClose={() => setIsModalOpen(false)}
         analysis={analysisResult ? {
           summary: analysisResult.shortSummary,
+          detailedSummary: analysisResult.detailedSummary,
           keyPoints: analysisResult.keyPoints,
           decisions: analysisResult.decisions,
           tasks: analysisResult.tasks
@@ -262,6 +430,7 @@ export default function Home() {
           decisions: [],
           tasks: []
         }}
+        format={analysisFormat}
         onSave={handleSaveReport}
         saving={savingReport}
       />

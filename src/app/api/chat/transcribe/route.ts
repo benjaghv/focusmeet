@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { transcribeAudio } from '@/lib/audioAnalysis';
 
+// Configuración para permitir archivos grandes
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutos máximo
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   console.log('Iniciando solicitud de transcripción...');
   

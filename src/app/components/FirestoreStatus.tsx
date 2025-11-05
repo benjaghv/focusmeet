@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FaExclamationTriangle, FaSpinner } from "react-icons/fa";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 export default function FirestoreStatus() {
   const [status, setStatus] = useState<{
@@ -48,17 +48,9 @@ export default function FirestoreStatus() {
     }
   };
 
-  if (status.loading) {
-    return (
-      <div className="mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
-        <FaSpinner className="animate-spin text-blue-600" />
-        <p className="text-sm text-blue-800">{status.message}</p>
-      </div>
-    );
-  }
-
-  if (status.success) {
-    return null; // No mostrar nada si todo está bien
+  // No mostrar nada mientras carga o si todo está bien
+  if (status.loading || status.success) {
+    return null;
   }
 
   return (

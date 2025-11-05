@@ -324,7 +324,8 @@ async function transcribeWithDeepgram(audioBuffer: ArrayBuffer): Promise<Transcr
 
 export async function analyzeTranscription(
   transcription: TranscriptionResult,
-  model: GroqModel = 'llama-3.3-70b-versatile'
+  model: GroqModel = 'llama-3.3-70b-versatile',
+  format: 'hpi_ros' | 'soap' = 'soap'
 ): Promise<AnalysisResult> {
   try {
     const API_KEY = process.env.GROQ_API_KEY;
@@ -335,6 +336,129 @@ export async function analyzeTranscription(
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://focusmeet-ai.vercel.app';
     const apiUrl = `${baseUrl}/api/chat`;
 
+    const systemPrompt = format === 'soap' 
+      ? `Eres un asistente médico especializado en generar reportes clínicos siguiendo el formato SOAP (Subjetivo, Objetivo, Análisis, Plan).
+
+Analiza la transcripción de la consulta médica y genera un reporte estructurado en formato JSON.
+
+ESTRUCTURA DEL detailedSummary (OBLIGATORIO):
+Debe seguir EXACTAMENTE este formato con las 4 secciones SOAP claramente separadas:
+
+S (SUBJETIVO):
+- Motivo de consulta principal
+- Síntomas reportados por el paciente
+- Historia de la enfermedad actual
+- Duración y evolución de los síntomas
+- Factores que mejoran o empeoran los síntomas
+
+O (OBJETIVO):
+- Signos vitales (PA, FC, temperatura, peso, etc.)
+- Hallazgos del examen físico
+- Resultados de laboratorio o estudios (si se mencionan)
+- Observaciones clínicas del médico
+
+A (ANÁLISIS):
+- Impresión diagnóstica principal
+- Diagnósticos diferenciales
+- Evaluación del estado del paciente
+- Interpretación de hallazgos
+
+P (PLAN):
+- Tratamiento farmacológico (medicamentos, dosis, frecuencia)
+- Tratamiento no farmacológico
+- Estudios complementarios solicitados
+- Seguimiento programado
+- Recomendaciones al paciente
+
+FORMATO JSON REQUERIDO:
+{
+  "shortSummary": "Resumen ejecutivo de 2-3 líneas con diagnóstico principal y plan",
+  "detailedSummary": "S (SUBJETIVO):\\n[Información subjetiva]\\n\\nO (OBJETIVO):\\n[Información objetiva]\\n\\nA (ANÁLISIS):\\n[Diagnóstico e interpretación]\\n\\nP (PLAN):\\n[Tratamiento y seguimiento]",
+  "keyPoints": ["Hallazgo relevante 1", "Hallazgo relevante 2", "Hallazgo relevante 3"],
+  "decisions": ["Decisión clínica 1", "Decisión clínica 2"],
+  "sentiment": "positivo" | "neutral" | "negativo"
+}
+
+REGLAS ESTRICTAS:
+1. El detailedSummary DEBE tener las 4 secciones: S, O, A, P
+2. Cada sección debe estar claramente etiquetada
+3. Usa saltos de línea (\\n) para separar secciones
+4. Si falta información en alguna sección, escribe "No documentado" en esa sección
+5. Sé específico con medicamentos (nombre, dosis, frecuencia)
+6. En keyPoints incluye los hallazgos más importantes
+7. En decisions incluye las decisiones clínicas tomadas
+8. NO incluyas campo "tasks" en este formato
+9. Usa terminología médica profesional
+10. NO inventes información que no esté en la transcripción`
+      : `Eres un asistente médico especializado en generar reportes clínicos siguiendo el formato HPI/ROS + PE + A/P (Historia, Examen Físico, Diagnóstico y Plan).
+
+Este formato es ideal para consultas iniciales o exploraciones complejas en especialidades médicas.
+
+ESTRUCTURA DEL detailedSummary (OBLIGATORIO):
+Debe seguir EXACTAMENTE este formato con las 4 secciones claramente separadas:
+
+HPI (HISTORIA DE LA ENFERMEDAD ACTUAL):
+- Motivo de consulta principal
+- Inicio de los síntomas (cuándo comenzaron)
+- Evolución temporal (cómo han progresado)
+- Características de los síntomas (localización, intensidad, duración)
+- Factores que mejoran o empeoran los síntomas
+- Tratamientos previos y su efectividad
+- Impacto en actividades diarias
+
+ROS (REVISIÓN POR SISTEMAS):
+Solo documentar sistemas mencionados o explorados:
+- General: Fiebre, escalofríos, pérdida de peso, fatiga, sudoración
+- Cardiovascular: Dolor torácico, palpitaciones, edema, ortopnea
+- Respiratorio: Disnea, tos, expectoración, sibilancias, hemoptisis
+- Gastrointestinal: Náuseas, vómitos, diarrea, estreñimiento, dolor abdominal, sangrado
+- Genitourinario: Disuria, hematuria, frecuencia, urgencia, incontinencia
+- Musculoesquelético: Dolor articular, rigidez, limitación de movimiento
+- Neurológico: Cefalea, mareos, debilidad, parestesias, alteraciones visuales
+- Psiquiátrico: Estado de ánimo, sueño, ansiedad, estrés
+- Piel: Erupciones, lesiones, cambios de color
+
+PE (EXAMEN FÍSICO):
+- Signos vitales: PA, FC, FR, temperatura, saturación O2, peso, talla
+- Apariencia general y estado mental
+- Hallazgos por sistemas examinados (cabeza, cuello, tórax, abdomen, extremidades, etc.)
+- Hallazgos positivos y negativos relevantes
+
+A/P (ANÁLISIS Y PLAN):
+- Impresión diagnóstica principal
+- Diagnósticos diferenciales (si aplica)
+- Plan terapéutico:
+  * Medicamentos (nombre, dosis, vía, frecuencia, duración)
+  * Procedimientos o intervenciones
+  * Estudios complementarios solicitados
+  * Interconsultas
+- Seguimiento programado
+- Educación al paciente
+- Pronóstico
+
+FORMATO JSON REQUERIDO:
+{
+  "shortSummary": "Resumen ejecutivo de 2-3 líneas con diagnóstico principal y plan",
+  "detailedSummary": "HPI (HISTORIA DE LA ENFERMEDAD ACTUAL):\\n[Información detallada]\\n\\nROS (REVISIÓN POR SISTEMAS):\\n[Sistemas explorados]\\n\\nPE (EXAMEN FÍSICO):\\n[Hallazgos del examen]\\n\\nA/P (ANÁLISIS Y PLAN):\\n[Diagnóstico y tratamiento]",
+  "keyPoints": ["Hallazgo relevante 1", "Hallazgo relevante 2", "Hallazgo relevante 3"],
+  "decisions": ["Decisión clínica 1", "Decisión clínica 2"],
+  "sentiment": "positivo" | "neutral" | "negativo"
+}
+
+REGLAS ESTRICTAS:
+1. El detailedSummary DEBE tener las 4 secciones: HPI, ROS, PE, A/P
+2. Cada sección debe estar claramente etiquetada
+3. Usa saltos de línea (\\n) para separar secciones
+4. Si falta información en alguna sección, escribe "No documentado en la consulta"
+5. Sé específico con medicamentos (nombre genérico, dosis, vía, frecuencia)
+6. En keyPoints incluye los hallazgos clínicos más importantes
+7. En decisions incluye las decisiones terapéuticas tomadas
+8. NO incluyas campo "tasks" en este formato
+9. Usa terminología médica profesional
+10. NO inventes información que no esté en la transcripción
+11. Para ROS, si un sistema no fue explorado, no lo menciones
+12. Sé exhaustivo en HPI, es la sección más importante`;
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -344,17 +468,21 @@ export async function analyzeTranscription(
         messages: [
           {
             role: 'system',
-            content: 'Eres un asistente médico encargado de generar reportes clínicos siguiendo el formato SOAP. Analiza la transcripción de la consulta y produce un objeto JSON válido que incluya únicamente la información confirmada en la conversación, redactada en español profesional, conciso y claro. Si algún campo no se menciona explícitamente, devuélvelo como null en lugar de inventarlo.'
+            content: systemPrompt
           },
           { 
             role: 'user', 
-            content: `
-              Transcripción: ${transcription.text}`
+            content: `Analiza esta transcripción y genera el reporte en formato JSON:
+
+Transcripción:
+${transcription.text}
+
+Recuerda: Responde SOLO con el objeto JSON, sin texto adicional.`
           }
         ],
         model,
         temperature: 0.3,
-        max_tokens: 2000
+        max_tokens: 3000
       }),
     });
 

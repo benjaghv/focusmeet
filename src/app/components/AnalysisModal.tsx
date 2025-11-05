@@ -8,16 +8,21 @@ interface AnalysisModalProps {
   onClose: () => void;
   analysis: {
     summary: string;
+    detailedSummary?: string;
     keyPoints: string[];
     decisions: string[];
     tasks: { description: string; responsible: string }[];
   };
+  format?: 'soap' | 'hpi_ros';
   onSave?: () => void | Promise<void>;
   saving?: boolean;
 }
 
-export default function AnalysisModal({ isOpen, onClose, analysis, onSave, saving = false }: AnalysisModalProps) {
+export default function AnalysisModal({ isOpen, onClose, analysis, format = 'soap', onSave, saving = false }: AnalysisModalProps) {
   if (!isOpen) return null;
+  
+  // Determinar si mostrar el resumen detallado estructurado
+  const showDetailedSummary = analysis.detailedSummary && (format === 'soap' || format === 'hpi_ros');
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -66,11 +71,25 @@ export default function AnalysisModal({ isOpen, onClose, analysis, onSave, savin
                     </Dialog.Title>
                     
                     <div className="mt-4 space-y-6">
-                      {/* Resumen */}
+                      {/* Resumen Breve */}
                       <div>
-                        <h3 className="text-md font-medium text-gray-900">Resumen</h3>
-                        <p className="mt-1 text-gray-600">{analysis.summary || 'No hay resumen disponible'}</p>
+                        <h3 className="text-md font-medium text-gray-900">Resumen Breve</h3>
+                        <p className="mt-1 text-gray-600">{analysis.summary || 'No hay información médica disponible en la transcripción'}</p>
                       </div>
+
+                      {/* Resumen Detallado Estructurado (SOAP o HPI/ROS) */}
+                      {showDetailedSummary && (
+                        <div>
+                          <h3 className="text-md font-medium text-gray-900 mb-2">
+                            {format === 'soap' ? 'Formato SOAP' : 'Formato HPI/ROS + PE + A/P'}
+                          </h3>
+                          <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <pre className="whitespace-pre-wrap text-sm text-gray-700 font-sans">
+                              {analysis.detailedSummary}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Puntos Clave */}
                       <div>
@@ -100,22 +119,6 @@ export default function AnalysisModal({ isOpen, onClose, analysis, onSave, savin
                         </ul>
                       </div>
 
-                      {/* Tareas */}
-                      <div>
-                        <h3 className="text-md font-medium text-gray-900">Tareas Asignadas</h3>
-                        {analysis.tasks?.length > 0 ? (
-                          <div className="mt-2 border rounded-md divide-y">
-                            {analysis.tasks.map((task, index) => (
-                              <div key={index} className="px-4 py-2">
-                                <p className="font-medium">{task.description}</p>
-                                <p className="text-sm text-gray-500">Responsable: {task.responsible}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="mt-1 text-gray-600">No se identificaron tareas</p>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>

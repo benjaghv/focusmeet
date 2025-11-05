@@ -32,30 +32,12 @@ export default function ReportEditorPage() {
   const [detailedSummary, setDetailedSummary] = useState("");
   const [keyPointsText, setKeyPointsText] = useState("");
   const [decisionsText, setDecisionsText] = useState("");
-  const [tasksText, setTasksText] = useState("");
 
   const parseList = (s: string) =>
     s
       .split("\n")
       .map((x) => x.trim())
       .filter(Boolean);
-
-  const parseTasks = (s: string): Task[] => {
-    // Una tarea por línea. Formato: descripcion | responsable
-    return s
-      .split("\n")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [description, responsible] = line.split("|").map((t) => (t || "").trim());
-        return { description, responsible };
-      });
-  };
-
-  const formatTasks = (tasks?: Task[]) =>
-    (tasks || [])
-      .map((t) => `${t.description || ""} | ${t.responsible || ""}`.trim())
-      .join("\n");
 
   // Cargar el reporte una sola vez
   useEffect(() => {
@@ -91,7 +73,6 @@ export default function ReportEditorPage() {
         setDetailedSummary(a.detailedSummary || "");
         setKeyPointsText((a.keyPoints || []).join("\n"));
         setDecisionsText((a.decisions || []).join("\n"));
-        setTasksText(formatTasks(a.tasks));
         loadedRef.current = true;
       } catch (e) {
         setError(e instanceof Error ? e.message : "Error desconocido");
@@ -111,12 +92,11 @@ export default function ReportEditorPage() {
         return;
       }
       setSaving(true);
-      const analysis: Analysis = {
+      const updatedAnalysis = {
         shortSummary,
         detailedSummary,
         keyPoints: parseList(keyPointsText),
         decisions: parseList(decisionsText),
-        tasks: parseTasks(tasksText),
       };
       const res = await fetch(`/api/reports/${encodeURIComponent(id)}`, {
         method: "PATCH",
@@ -124,7 +104,7 @@ export default function ReportEditorPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ analysis }),
+        body: JSON.stringify({ analysis: updatedAnalysis }),
       });
       if (!res.ok) throw new Error("No se pudo guardar el reporte");
       toast.success("Reporte actualizado");
@@ -194,16 +174,6 @@ export default function ReportEditorPage() {
                 className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tareas (una por línea: descripcion | responsable)</label>
-            <textarea
-              value={tasksText}
-              onChange={(e) => setTasksText(e.target.value)}
-              rows={6}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
           </div>
 
           <div className="flex items-center gap-3">

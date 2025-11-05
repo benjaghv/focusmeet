@@ -4,7 +4,7 @@ import { GroqModel } from '@/lib/groq';
 
 export async function POST(request: Request) {
   try {
-    const { text, model = 'llama-3.3-70b-versatile' } = await request.json();
+    const { text, model = 'llama-3.3-70b-versatile', format = 'soap' } = await request.json();
     
     if (!text) {
       return NextResponse.json(
@@ -13,13 +13,16 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log(`Analizando con formato: ${format}`);
+
     const analysis = await analyzeTranscription(
       {
         text,
         speakers: [],
         segments: []
       },
-      model as GroqModel
+      model as GroqModel,
+      format as 'hpi_ros' | 'soap'
     );
 
     return NextResponse.json(analysis);

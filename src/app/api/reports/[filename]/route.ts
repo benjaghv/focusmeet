@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { getDb, verifyRequestAndGetUid } from '@/lib/firebaseAdmin';
- 
-export const runtime = 'nodejs';
 
 type ReportTask = { description: string; responsible: string };
 type ReportAnalysis = {
@@ -20,6 +16,8 @@ type ReportDoc = {
   title?: string | null;
   analysis?: ReportAnalysis;
   meta?: Record<string, unknown>;
+  format?: string;
+  patientId?: string;
 };
 
 export async function GET(
@@ -46,9 +44,28 @@ export async function GET(
           if (data.userId && data.userId !== uid) {
             return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
           }
+          
+          // Obtener nombre del paciente si existe patientId
+          let patientName = null;
+          if (data.patientId) {
+            try {
+              const patientDoc = await db.collection('patients').doc(data.patientId).get();
+              if (patientDoc.exists) {
+                const patientData = patientDoc.data();
+                patientName = patientData?.nombre || null;
+              }
+            } catch (e) {
+              console.warn('Error al obtener nombre del paciente:', e);
+            }
+          }
+          
           const url = new URL(request.url);
           const download = url.searchParams.get('download');
-          const body = JSON.stringify(data, null, 2);
+          const responseData = {
+            ...data,
+            patientName,
+          };
+          const body = JSON.stringify(responseData, null, 2);
 
           const headers: Record<string, string> = {
             'Content-Type': 'application/json; charset=utf-8',
@@ -60,34 +77,17 @@ export async function GET(
 
           return new NextResponse(body, { status: 200, headers });
         }
+        
+        // Si no se encontró el documento
+        return NextResponse.json({ error: 'Reporte no encontrado' }, { status: 404 });
       } catch (e) {
-        console.warn('Fallo al leer doc Firestore, probar FS:', e);
+        console.error('Error al leer reporte desde Firestore:', e);
+        return NextResponse.json({ error: 'Error al obtener el reporte' }, { status: 500 });
       }
     }
-
-    // Fallback: leer archivo local (espera nombre con .json)
-    if (!filename.endsWith('.json')) {
-      return NextResponse.json({ error: 'Nombre de archivo inválido' }, { status: 400 });
-    }
-    const reportsDir = path.join(process.cwd(), 'reports', uid);
-    const filePath = path.join(reportsDir, filename);
-
-    const content = await fs.readFile(filePath, 'utf-8');
-    const url = new URL(request.url);
-    const download = url.searchParams.get('download');
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store',
-    };
-    if (download) {
-      headers['Content-Disposition'] = `attachment; filename=${filename}`;
-    }
-
-    return new NextResponse(content, {
-      status: 200,
-      headers,
-    });
+    
+    // Si no hay Firestore configurado
+    return NextResponse.json({ error: 'Firestore no está configurado' }, { status: 500 });
   } catch (error) {
     console.error('Error al obtener reporte:', error);
     return NextResponse.json(
@@ -112,35 +112,29 @@ export async function PATCH(
     }
 
     const db = getDb();
-    if (db) {
-      const ref = db.collection('reports').doc(filename);
-      const snap = await ref.get();
-      if (snap.exists) {
-        const data = snap.data() as ReportDoc;
-        if (data.userId && data.userId !== uid) return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
-        await ref.update({
-          ...(analysis ? { analysis } : {}),
-          ...(meta ? { meta } : {}),
-          updatedAt: new Date().toISOString(),
-        });
-        return NextResponse.json({ ok: true, source: 'firestore' });
-      }
+    if (!db) {
+      return NextResponse.json({ error: 'Firestore no está configurado' }, { status: 500 });
     }
 
-    // Fallback FS
-    if (!filename.endsWith('.json')) return NextResponse.json({ error: 'Nombre de archivo inválido' }, { status: 400 });
-    const reportsDir = path.join(process.cwd(), 'reports', uid);
-    const filePath = path.join(reportsDir, filename);
-    const content = await fs.readFile(filePath, 'utf-8');
-    const data = JSON.parse(content) as ReportDoc;
-    const updated = {
-      ...data,
+    const ref = db.collection('reports').doc(filename);
+    const snap = await ref.get();
+    
+    if (!snap.exists) {
+      return NextResponse.json({ error: 'Reporte no encontrado' }, { status: 404 });
+    }
+    
+    const data = snap.data() as ReportDoc;
+    if (data.userId && data.userId !== uid) {
+      return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
+    }
+    
+    await ref.update({
       ...(analysis ? { analysis } : {}),
       ...(meta ? { meta } : {}),
       updatedAt: new Date().toISOString(),
-    };
-    await fs.writeFile(filePath, JSON.stringify(updated, null, 2), 'utf-8');
-    return NextResponse.json({ ok: true, source: 'fs' });
+    });
+    
+    return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('PATCH reporte error:', error);
     return NextResponse.json({ error: 'No se pudo actualizar' }, { status: 500 });
@@ -157,22 +151,24 @@ export async function DELETE(
     const { filename } = await params;
 
     const db = getDb();
-    if (db) {
-      const ref = db.collection('reports').doc(filename);
-      const snap = await ref.get();
-      if (snap.exists) {
-        const data = snap.data() as ReportDoc;
-        if (data.userId && data.userId !== uid) return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
-        await ref.delete();
-        return NextResponse.json({ ok: true, source: 'firestore' });
-      }
+    if (!db) {
+      return NextResponse.json({ error: 'Firestore no está configurado' }, { status: 500 });
     }
 
-    if (!filename.endsWith('.json')) return NextResponse.json({ error: 'Nombre de archivo inválido' }, { status: 400 });
-    const reportsDir = path.join(process.cwd(), 'reports', uid);
-    const filePath = path.join(reportsDir, filename);
-    await fs.unlink(filePath);
-    return NextResponse.json({ ok: true, source: 'fs' });
+    const ref = db.collection('reports').doc(filename);
+    const snap = await ref.get();
+    
+    if (!snap.exists) {
+      return NextResponse.json({ error: 'Reporte no encontrado' }, { status: 404 });
+    }
+    
+    const data = snap.data() as ReportDoc;
+    if (data.userId && data.userId !== uid) {
+      return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
+    }
+    
+    await ref.delete();
+    return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('DELETE reporte error:', error);
     return NextResponse.json({ error: 'No se pudo eliminar' }, { status: 500 });

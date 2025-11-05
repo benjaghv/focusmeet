@@ -9,7 +9,6 @@ import {
   FaEnvelope,
   FaStethoscope,
   FaStickyNote,
-  FaFileMedical,
   FaEdit,
   FaTrash,
 } from "react-icons/fa";
@@ -21,7 +20,6 @@ interface PatientDetailsModalProps {
   onClose: () => void;
   onEdit: (patient: Patient) => void;
   onDelete: (patient: Patient) => Promise<void> | void;
-  onCreateReport: (patient: Patient) => void;
   deletingId?: string | null;
 }
 
@@ -41,7 +39,6 @@ export default function PatientDetailsModal({
   onClose,
   onEdit,
   onDelete,
-  onCreateReport,
   deletingId,
 }: PatientDetailsModalProps) {
   if (!patient || !isOpen) return null;
@@ -138,26 +135,18 @@ export default function PatientDetailsModal({
                   </div>
                 </div>
 
-                <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={() => onCreateReport(patient)}
-                      className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
-                    >
-                      <FaFileMedical /> Crear reporte
-                    </button>
-                    <button
-                      onClick={() => onEdit(patient)}
-                      className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-200"
-                    >
-                      <FaEdit /> Editar
-                    </button>
-                  </div>
+                <div className="mt-6 flex items-center justify-between gap-3">
+                  <button
+                    onClick={() => onEdit(patient)}
+                    className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors duration-200"
+                  >
+                    <FaEdit /> Editar
+                  </button>
                   <button
                     onClick={() => onDelete(patient)}
                     disabled={deleting}
-                    className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-white shadow ${
-                      deleting ? "bg-red-300 cursor-not-allowed" : "bg-red-600 hover:bg-red-500"
+                    className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-white shadow transition-colors duration-200 ${
+                      deleting ? "bg-red-300 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
                     }`}
                   >
                     <FaTrash /> {deleting ? "Eliminando..." : "Eliminar"}

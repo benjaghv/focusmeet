@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { toast } from "sonner";
 import AnalysisModal from "@/app/components/AnalysisModal";
-import { FaArrowLeft, FaEdit, FaPlus, FaTrash, FaFileAlt } from "react-icons/fa";
+import { FaArrowLeft, FaEdit, FaTrash, FaFileAlt } from "react-icons/fa";
 
 
 type Patient = {
@@ -383,14 +383,9 @@ export default function PatientDetailPage() {
 
       {/* Reportes del Paciente */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Reportes</h2>
-          <button
-            onClick={() => router.push(`/?patientId=${patientId}`)}
-            className="px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-500 inline-flex items-center gap-2"
-          >
-            <FaPlus /> Nuevo Reporte
-          </button>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Reportes del Paciente</h2>
+          <p className="text-sm text-gray-600 mt-1">Para crear un nuevo reporte, ve a la página principal y selecciona este paciente.</p>
         </div>
 
         {reports === null && (
@@ -408,12 +403,9 @@ export default function PatientDetailPage() {
             <p className="mt-1 text-gray-500">
               Aún no has generado reportes para este paciente.
             </p>
-            <button
-              onClick={() => router.push(`/?patientId=${patientId}`)}
-              className="mt-4 px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 text-sm font-medium inline-flex items-center gap-2"
-            >
-              <FaPlus /> Crear Primer Reporte
-            </button>
+            <p className="mt-3 text-sm text-indigo-600">
+              Ve a la página principal para crear el primer reporte.
+            </p>
           </div>
         )}
 
