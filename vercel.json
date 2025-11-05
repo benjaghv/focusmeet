@@ -1,10 +1,10 @@
 {
   "functions": {
-    "api/chat/transcribe/route.ts": {
+    "src/app/api/chat/transcribe/route.ts": {
       "maxDuration": 10,
       "memory": 1024
     },
-    "api/chat/analyze/route.ts": {
+    "src/app/api/chat/analyze/route.ts": {
       "maxDuration": 10,
       "memory": 1024
     }
