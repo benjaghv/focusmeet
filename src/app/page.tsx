@@ -260,7 +260,7 @@ export default function Home() {
 
   // Resto del componente se mantiene igual...
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 w-full overflow-x-hidden">
       <Navbar />
       <Suspense fallback={null}>
         <PatientParams
@@ -270,8 +270,8 @@ export default function Home() {
           }}
         />
       </Suspense>
-      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
-        <div className="text-center max-w-4xl mx-auto w-full">
+      <div className="w-full px-4 sm:px-6 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="text-center w-full max-w-4xl mx-auto">
           {patientName && (
             <div className="mb-6 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-lg">
               <p className="text-sm text-indigo-800">
@@ -279,22 +279,22 @@ export default function Home() {
               </p>
             </div>
           )}
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 px-2">
             FocusMeet
           </h1>
-          <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto px-4">
           Analiza tus sesiones médicas de forma inteligente.<br />
           Sube tu grabación y genera reportes clínicos estructurados para seguir la evolución de tus pacientes.
           </p>
 
           {/* Tarjeta: Selector de formato */}
-          <div className="mb-6 bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 text-left">1. Selecciona el formato de análisis</h3>
-            <div className="flex bg-gray-50 rounded-lg p-1 border border-gray-200">
+          <div className="mb-6 bg-white rounded-xl shadow-md p-4 sm:p-6 w-full max-w-2xl mx-auto">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-4 text-left">1. Selecciona el formato de análisis</h3>
+            <div className="flex flex-col sm:flex-row bg-gray-50 rounded-lg p-1 border border-gray-200 gap-1 sm:gap-0">
               <button
                 onClick={() => setAnalysisFormat('soap')}
                 disabled={isAnalyzing}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`px-4 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex-1 ${
                   analysisFormat === 'soap'
                     ? 'bg-indigo-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -305,7 +305,7 @@ export default function Home() {
               <button
                 onClick={() => setAnalysisFormat('hpi_ros')}
                 disabled={isAnalyzing}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`px-4 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex-1 ${
                   analysisFormat === 'hpi_ros'
                     ? 'bg-indigo-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -330,8 +330,8 @@ export default function Home() {
           </div>
 
           {/* Tarjeta: Selector de Paciente */}
-          <div className="mb-6 bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 text-left">
+          <div className="mb-6 bg-white rounded-xl shadow-md p-4 sm:p-6 w-full max-w-2xl mx-auto">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-4 text-left">
               2. Selecciona el paciente <span className="text-red-500">*</span>
               {patients.length > 0 && <span className="text-xs text-gray-500 ml-2">({patients.length} disponibles)</span>}
             </h3>
@@ -342,12 +342,12 @@ export default function Home() {
                 </p>
               </div>
             )}
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <select
                 value={selectedPatientId}
                 onChange={(e) => setSelectedPatientId(e.target.value)}
                 disabled={isAnalyzing || loadingPatients}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">
                   {loadingPatients ? 'Cargando pacientes...' : patients.length === 0 ? 'No hay pacientes (crea uno primero)' : 'Selecciona un paciente'}
@@ -360,7 +360,7 @@ export default function Home() {
               </select>
               <button
                 onClick={() => router.push('/pacientes')}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 text-sm font-medium"
+                className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 text-xs sm:text-sm font-medium whitespace-nowrap"
               >
                 + Nuevo Paciente
               </button>
@@ -378,19 +378,19 @@ export default function Home() {
           </div>
 
           {/* Tarjeta: Botón de subir */}
-          <div className="mb-6 bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 text-left">3. Sube tu archivo de audio o video</h3>
+          <div className="mb-6 bg-white rounded-xl shadow-md p-4 sm:p-6 w-full max-w-2xl mx-auto">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-4 text-left">3. Sube tu archivo de audio o video</h3>
             <div className="relative group">
               <button
                 onClick={handleButtonClick}
                 disabled={isAnalyzing || !selectedPatientId}
-                className={`w-full cursor-pointer px-8 py-4 bg-indigo-600 text-white rounded-lg text-lg font-semibold shadow-lg transform transition-all duration-300 ${isAnalyzing || !selectedPatientId
+                className={`w-full cursor-pointer px-4 sm:px-8 py-3 sm:py-4 bg-indigo-600 text-white rounded-lg text-sm sm:text-lg font-semibold shadow-lg transform transition-all duration-300 ${isAnalyzing || !selectedPatientId
                     ? 'opacity-50 cursor-not-allowed'
                     : 'hover:scale-[1.02] hover:bg-indigo-700 active:scale-[0.98]'
                   }`}
               >
-                <div className="flex items-center justify-center gap-3">
-                  <FaCloudUploadAlt className="text-2xl" />
+                <div className="flex items-center justify-center gap-2 sm:gap-3">
+                  <FaCloudUploadAlt className="text-xl sm:text-2xl" />
                   {isAnalyzing ? 'Analizando...' : 'Subir archivo (.mp3 o .mp4)'}
                 </div>
               </button>
@@ -406,7 +406,7 @@ export default function Home() {
           </div>
 
           {/* Barra de progreso */}
-          <div className="mt-6 max-w-2xl mx-auto">
+          <div className="mt-6 w-full max-w-2xl mx-auto px-2">
             <ProgressBar
               progress={progress}
               status={progressStatus}

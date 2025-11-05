@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-teal-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-teal-50 overflow-x-hidden`}
       >
         <Toaster 
           position="top-right" 
@@ -37,7 +37,7 @@ export default function RootLayout({
           duration={4000}
         />
         <Navbar />
-        <main className="flex-grow transition-all duration-300 ease-in-out">
+        <main className="flex-grow transition-all duration-300 ease-in-out overflow-x-hidden w-full">
           {children}
         </main>
         <Footer />
