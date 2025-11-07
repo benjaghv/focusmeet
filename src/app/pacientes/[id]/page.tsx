@@ -381,10 +381,104 @@ export default function PatientDetailPage() {
         </p>
       </div>
 
+      {/* Sesiones del Paciente - Timeline */}
+      <div className="mb-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Historial de Sesiones</h2>
+          <p className="text-sm text-gray-600 mt-1">Sesiones realizadas con este paciente en orden cronológico.</p>
+        </div>
+
+        {reports === null && (
+          <div className="flex items-center justify-center py-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600" />
+          </div>
+        )}
+
+        {reports !== null && reports.length === 0 && (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">
+              No hay sesiones registradas
+            </h3>
+            <p className="mt-1 text-gray-500">
+              Aún no has generado sesiones para este paciente.
+            </p>
+          </div>
+        )}
+
+        {reports !== null && reports.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="space-y-4">
+              {reports.map((r, index) => (
+                <div
+                  key={r.filename}
+                  className="flex gap-4 pb-4 border-b border-gray-200 last:border-b-0 last:pb-0"
+                >
+                  {/* Timeline indicator */}
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 font-semibold text-sm">
+                      {reports.length - index}
+                    </div>
+                    {index < reports.length - 1 && (
+                      <div className="w-0.5 h-full bg-gray-200 mt-2" />
+                    )}
+                  </div>
+
+                  {/* Session content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-semibold text-gray-900 truncate">
+                          {r.title || "Sesión sin título"}
+                        </h3>
+                        <p className="text-sm text-indigo-600 font-medium mt-1">
+                          📅 {formatDate(r.createdAt)}
+                        </p>
+                        {r.summary && (
+                          <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                            {r.summary}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleViewReport(r.filename)}
+                          className="px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-500"
+                        >
+                          Ver
+                        </button>
+                        <a
+                          href={`/sesiones/${encodeURIComponent(r.filename)}`}
+                          className="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                        >
+                          Editar
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Reportes del Paciente */}
       <div>
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Reportes del Paciente</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Reportes Detallados</h2>
           <p className="text-sm text-gray-600 mt-1">Para crear un nuevo reporte, ve a la página principal y selecciona este paciente.</p>
         </div>
 
