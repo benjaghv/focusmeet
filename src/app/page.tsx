@@ -250,7 +250,7 @@ export default function Home() {
       const data = await res.json();
       toast.success(`Reporte guardado: ${data.filename}`);
       // Siempre ir a reportes, no a la ficha del paciente
-      router.push('/reportes');
+      router.push('/sesiones');
     } catch (e) {
       console.error('Error guardando reporte:', e);
       toast.error(e instanceof Error ? e.message : 'Error desconocido al guardar el reporte');

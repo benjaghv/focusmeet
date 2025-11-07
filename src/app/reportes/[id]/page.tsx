@@ -108,7 +108,7 @@ export default function ReportEditorPage() {
       });
       if (!res.ok) throw new Error("No se pudo guardar el reporte");
       toast.success("Reporte actualizado");
-      router.push("/reportes");
+      router.push("/sesiones");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error desconocido al guardar");
     } finally {
@@ -121,7 +121,7 @@ export default function ReportEditorPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Editar reporte</h1>
         <button
-          onClick={() => router.push("/reportes")}
+          onClick={() => router.push("/sesiones")}
           className="px-3 py-2 text-sm rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50"
         >
           Volver
@@ -185,7 +185,7 @@ export default function ReportEditorPage() {
               {saving ? "Guardando…" : "Guardar"}
             </button>
             <button
-              onClick={() => router.push("/reportes")}
+              onClick={() => router.push("/sesiones")}
               className="px-4 py-2 rounded-md ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Cancelar

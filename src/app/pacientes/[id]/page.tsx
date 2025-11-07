@@ -455,7 +455,7 @@ export default function PatientDetailPage() {
                     Ver reporte
                   </button>
                   <a
-                    href={`/reportes/${encodeURIComponent(r.filename)}`}
+                    href={`/sesiones/${encodeURIComponent(r.filename)}`}
                     className="px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
                   >
                     Editar
