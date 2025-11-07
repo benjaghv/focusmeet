@@ -170,7 +170,7 @@ export default function PacientesPage() {
   const handleDeletePatient = async (patient: Patient) => {
     try {
       const ok = confirm(
-        `¿Eliminar al paciente "${patient.nombre}"? Esta acción eliminará también todos sus reportes asociados y no se puede deshacer.`
+        `¿Eliminar al paciente "${patient.nombre}"? Esta acción eliminará también todos sus sesiones asociadas y no se puede deshacer.`
       );
       if (!ok) return;
 

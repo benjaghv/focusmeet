@@ -112,8 +112,8 @@ export default function Navbar() {
               <NavLink href="/">
                 <FaHome className="mr-1" /> Inicio
               </NavLink>
-              <NavLink href="/reportes">
-                <FaChartBar className="mr-1" /> Reportes
+              <NavLink href="/sesiones">
+                <FaChartBar className="mr-1" /> Sesiones
               </NavLink>
               <NavLink href="/pacientes">
                 <FaUser className="mr-1" /> Pacientes
@@ -171,8 +171,8 @@ export default function Navbar() {
             <NavLink href="/">
               <FaHome className="mr-2" /> Inicio
             </NavLink>
-            <NavLink href="/reportes">
-              <FaChartBar className="mr-2" /> Reportes
+            <NavLink href="/sesiones">
+              <FaChartBar className="mr-2" /> Sesiones
             </NavLink>
             <NavLink href="/pacientes">
               <FaUser className="mr-2" /> Pacientes

@@ -225,7 +225,7 @@ export default function Home() {
       // exigir login
       const token = await getToken();
       if (!token) {
-        toast.info('Inicia sesión para guardar tus reportes');
+        toast.info('Inicia sesión para guardar tus sesiones');
         router.push('/login');
         return;
       }
@@ -280,7 +280,7 @@ export default function Home() {
               </p>
             </div>
           )}
-          <div className="flex items-end justify-center gap-2 mb-6 px-2">
+          <div className="flex items-end justify-center gap-2 mb-6 px-2 mt-12 sm:mt-16">
             <Image 
               src="/logoClinio.png" 
               alt="Clinio" 
